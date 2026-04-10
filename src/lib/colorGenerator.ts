@@ -1,4 +1,4 @@
-import { getContrastRatio, passesWCAG, rgbToHex } from './wcag';
+import { getContrastRatio, passesWCAG } from './wcag';
 
 export type BackgroundType = 'solid' | 'gradient' | 'pattern';
 
@@ -34,7 +34,7 @@ function generateBaseColors(): { bg: string, fg: string } {
 }
 
 // Lightens or darkens a hex color slightly for gradient purposes
-function slightlyShiftColor(hex: string): string {
+function slightlyShiftColor(_hex: string): string {
   // Simple heuristic: just generate a random color for now
   // For better visual design, we typically blend it. Here we just return another random one.
   return randomHex();
