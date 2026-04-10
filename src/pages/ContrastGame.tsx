@@ -25,6 +25,8 @@ const TEXT_SAMPLES = [
 export default function ContrastGame() {
   const navigate = useNavigate();
   const [colors, setColors] = useState<GameRoundColors | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [wasTimeout, setWasTimeout] = useState(false);
   const [lives, setLives] = useState(3);
   const [isGameOver, setIsGameOver] = useState(false);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -44,16 +46,27 @@ export default function ContrastGame() {
     };
   }, []);
 
+  const startGame = () => {
+    setHasStarted(true);
+    setLives(3);
+    resetGame();
+    loadNextRound();
+  };
+
   const loadNextRound = () => {
     setColors(generateColorCombination());
     const randomText = TEXT_SAMPLES[Math.floor(Math.random() * TEXT_SAMPLES.length)];
     setCurrentText(randomText);
   };
 
-  const handleGuess = (userPassGuess: boolean) => {
-    if (feedback !== 'idle' || isGameOver || !colors) return;
+  const handleGuess = (userPassGuess: boolean | 'timeout') => {
+    if (feedback !== 'idle' || isGameOver || !colors || !hasStarted) return;
+    
+    // Check if it was a timeout
+    const isTimeout = userPassGuess === 'timeout';
+    setWasTimeout(isTimeout);
 
-    const isCorrect = userPassGuess === colors.passesNormal;
+    const isCorrect = !isTimeout && userPassGuess === colors.passesNormal;
     
     if (isCorrect) {
       setFeedback('correct');
@@ -91,7 +104,7 @@ export default function ContrastGame() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (feedback !== 'idle' || isGameOver || !colors) return;
+      if (feedback !== 'idle' || isGameOver || !colors || !hasStarted) return;
       
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') {
         handleGuess(true);
@@ -102,7 +115,7 @@ export default function ContrastGame() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [feedback, isGameOver, colors, lives]); // include lives so handleGuess uses fresh state
+  }, [feedback, isGameOver, colors, lives, hasStarted]); // inject hasStarted into dependencies
 
   if (!colors) return null; // loading stat
 
@@ -111,6 +124,34 @@ export default function ContrastGame() {
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
       
+      {/* Start Game Modal */}
+      <Modal 
+        isOpen={!hasStarted} 
+        onClose={() => {}} 
+        title="Contrast Checker"
+        description="Are you ready to test your design sight?"
+        preventOutsideClick
+        className="max-w-md"
+      >
+        <div className="flex flex-col gap-4 mt-2">
+          <p className="text-sm text-text-secondary leading-relaxed">
+            You will be shown random color combinations. You have <strong className="text-text-primary">5 seconds</strong> per round to determine if the contrast passes the <strong className="text-text-primary">WCAG AA Standard (4.5:1)</strong>.
+          </p>
+          <div className="flex items-center gap-3 bg-surface border border-border p-3 rounded-lg mb-2">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-text-secondary">Keyboard Shortcuts</span>
+              <div className="flex gap-2">
+                <span className="px-2 py-0.5 bg-background border border-border rounded text-xs">P / ← for PASS</span>
+                <span className="px-2 py-0.5 bg-background border border-border rounded text-xs">F / → for FAIL</span>
+              </div>
+            </div>
+          </div>
+          <Button size="lg" className="w-full" onClick={startGame}>
+            Start Game
+          </Button>
+        </div>
+      </Modal>
+
       <Modal 
         isOpen={isGameOver} 
         onClose={() => {}} 
@@ -147,10 +188,8 @@ export default function ContrastGame() {
 
           <div className="flex flex-col gap-3 w-full">
             <Button size="lg" className="w-full h-12 text-md" onClick={() => {
-              setLives(3);
-              resetGame();
               setIsGameOver(false);
-              loadNextRound();
+              startGame();
             }}>
               Play Again
             </Button>
@@ -212,6 +251,22 @@ export default function ContrastGame() {
             </div>
           </div>
 
+          {/* Progress Timer */}
+          {hasStarted && !isGameOver && colors && (
+            <div className="w-full h-1.5 bg-surface border border-border rounded-full overflow-hidden mt-3 mb-2 shrink-0 relative">
+              {feedback === 'idle' && (
+                <motion.div
+                  key={"timer" + colors.backgroundStr + score} // reset animation natively
+                  initial={{ width: "100%", backgroundColor: "#10b981" }}
+                  animate={{ width: "0%", backgroundColor: "#f43f5e" }}
+                  transition={{ duration: 5, ease: "linear" }}
+                  onAnimationComplete={() => handleGuess('timeout')}
+                  className="h-full absolute left-0 top-0"
+                />
+              )}
+            </div>
+          )}
+
           {/* The Pure Game Board Container */}
           <motion.div 
             animate={isShaking ? { x: [-5, 5, -5, 5, 0] } : {}}
@@ -263,7 +318,7 @@ export default function ContrastGame() {
                     </div>
                     
                     <div className={`px-4 py-1.5 text-sm font-bold uppercase tracking-widest rounded-md ${colors.passesNormal ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
-                      {colors.passesNormal ? 'Pass' : 'Fail'}
+                      {wasTimeout ? 'TIME OUT' : colors.passesNormal ? 'Pass' : 'Fail'}
                     </div>
 
                     {feedback === 'wrong' && (
