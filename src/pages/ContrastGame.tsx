@@ -8,6 +8,7 @@ import { Heart, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useGameStore } from '../store/gameStore';
+import { useUserStore } from '../store/userStore';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -31,6 +32,7 @@ export default function ContrastGame() {
   const [currentText, setCurrentText] = useState(TEXT_SAMPLES[0]);
   
   const { score, streak, bestStreak, totalAnswers, correctAnswers, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
+  const { username, tag } = useUserStore();
 
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
@@ -113,6 +115,7 @@ export default function ContrastGame() {
         isOpen={isGameOver} 
         onClose={() => {}} 
         title="GAME OVER"
+        description={username ? `Good effort, ${username}#${tag}!` : undefined}
         preventOutsideClick
         className="max-w-md sm:max-w-lg"
       >

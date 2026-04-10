@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { Gamepad2, Trophy, Home as HomeIcon, X, Palette } from 'lucide-react';
+import { Gamepad2, Trophy, Home as HomeIcon, X, Palette, UserCircle2 } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore';
+import { useUserStore } from '../../store/userStore';
 import { cn } from '../../lib/utils';
 
 const navItems = [
@@ -11,6 +12,7 @@ const navItems = [
 
 export default function Sidebar() {
   const { isSidebarOpen, closeSidebar } = useUiStore();
+  const { username, tag, openModal } = useUserStore();
 
   return (
     <>
@@ -77,9 +79,32 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="mt-auto px-3 py-4 bg-background/50 rounded-xl">
-          <p className="text-xs font-medium text-text-secondary">DesignSight v0.1.0</p>
-          <p className="text-xs text-text-secondary/70 mt-1">Arcade for UI/UX Designers</p>
+        <div className="mt-auto pt-4 flex flex-col gap-3">
+          {/* User Profile Badge */}
+          <button 
+            onClick={openModal}
+            className="flex items-center justify-between px-3 py-2.5 w-full bg-background rounded-lg border border-border hover:border-accent/30 hover:bg-accent/5 transition-all group text-left"
+          >
+            <div className="flex items-center gap-2.5 w-full overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-accent to-purple-500 flex items-center justify-center shrink-0">
+                <UserCircle2 size={16} className="text-white" />
+              </div>
+              <div className="flex flex-col truncate pr-2 w-full">
+                {username ? (
+                  <>
+                    <span className="text-sm font-bold text-text-primary truncate">{username}</span>
+                    <span className="text-xs font-mono text-text-secondary">#{tag}</span>
+                  </>
+                ) : (
+                  <span className="text-sm font-bold text-text-primary">Select Alias...</span>
+                )}
+              </div>
+            </div>
+          </button>
+
+          <div className="px-3">
+            <p className="text-xs font-medium text-text-secondary">DesignSight v0.1.0</p>
+          </div>
         </div>
       </aside>
     </>

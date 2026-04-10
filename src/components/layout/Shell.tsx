@@ -1,10 +1,12 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { UsernameModal } from '../ui/UsernameModal';
 
 export default function Shell() {
   return (
     <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] w-full antialiased font-sans transition-colors duration-300">
+      <UsernameModal />
       <Sidebar />
       <div className="flex-1 flex flex-col w-full h-screen overflow-hidden">
         <Header />
