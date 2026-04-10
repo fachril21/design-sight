@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
 import { generateColorCombination } from '../lib/colorGenerator';
 import type { GameRoundColors } from '../lib/colorGenerator';
 import { Heart, CheckCircle, XCircle } from 'lucide-react';
@@ -20,6 +22,7 @@ const TEXT_SAMPLES = [
 ];
 
 export default function ContrastGame() {
+  const navigate = useNavigate();
   const [colors, setColors] = useState<GameRoundColors | null>(null);
   const [lives, setLives] = useState(3);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -27,7 +30,7 @@ export default function ContrastGame() {
   const [isShaking, setIsShaking] = useState(false);
   const [currentText, setCurrentText] = useState(TEXT_SAMPLES[0]);
   
-  const { score, streak, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
+  const { score, streak, bestStreak, totalAnswers, correctAnswers, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
 
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
@@ -101,36 +104,66 @@ export default function ContrastGame() {
 
   if (!colors) return null; // loading stat
 
+  const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
       
-      {isGameOver ? (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center border border-border bg-surface rounded-2xl w-full max-w-md p-10 shadow-sm"
-        >
-          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-             <Heart className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-3xl font-bold mb-4 tracking-tight text-text-primary">Game Over</h2>
-          <div className="flex flex-col items-center gap-1 mb-8">
-            <span className="text-sm font-medium text-text-secondary uppercase tracking-widest">Final Score</span>
-            <span className="text-5xl font-mono font-black text-text-primary">{score}</span>
+      <Modal 
+        isOpen={isGameOver} 
+        onClose={() => {}} 
+        title="GAME OVER"
+        preventOutsideClick
+        className="max-w-md sm:max-w-lg"
+      >
+        <div className="flex flex-col items-center pt-2">
+          
+          <div className="flex flex-col items-center gap-1 mb-6 text-center">
+            <span className="text-sm font-semibold text-text-secondary uppercase tracking-widest">Final Score</span>
+            <span className="text-6xl font-mono font-black text-text-primary tracking-tight">{score}</span>
             {score >= highScore && score > 0 && (
-              <span className="text-xs font-bold text-emerald-500 mt-2 bg-emerald-500/10 px-2 py-1 rounded">NEW HIGH SCORE!</span>
+              <span className="text-xs font-bold text-emerald-500 mt-2 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-wider">New High Score!</span>
             )}
           </div>
-          <Button className="w-full" size="lg" onClick={() => {
-            setLives(3);
-            resetGame();
-            setIsGameOver(false);
-            loadNextRound();
-          }}>
-            Play Again
-          </Button>
-        </motion.div>
-      ) : (
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 w-full mb-8">
+            <div className="bg-surface border border-border rounded-xl p-4 flex flex-col items-center justify-center">
+              <span className="text-xs font-medium text-text-secondary uppercase tracking-widest mb-1">Best Streak</span>
+              <span className="text-xl font-bold text-text-primary flex items-center gap-1"><span className="text-orange-500">🔥</span> {bestStreak}</span>
+            </div>
+            <div className="bg-surface border border-border rounded-xl p-4 flex flex-col items-center justify-center">
+              <span className="text-xs font-medium text-text-secondary uppercase tracking-widest mb-1">Accuracy</span>
+              <span className="text-xl font-bold text-text-primary">{accuracy}%</span>
+            </div>
+            <div className="bg-surface border border-border rounded-xl p-4 flex flex-col items-center justify-center col-span-2">
+              <span className="text-xs font-medium text-text-secondary uppercase tracking-widest mb-1">Questions Answered</span>
+              <span className="text-xl font-bold text-text-primary">{totalAnswers}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 w-full">
+            <Button size="lg" className="w-full h-12 text-md" onClick={() => {
+              setLives(3);
+              resetGame();
+              setIsGameOver(false);
+              loadNextRound();
+            }}>
+              Play Again
+            </Button>
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Button variant="secondary" size="lg" className="h-12 w-full text-md" disabled>
+                Share Score
+              </Button>
+              <Button variant="secondary" size="lg" className="h-12 w-full text-md" onClick={() => navigate('/leaderboard')}>
+                View Leaderboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {!isGameOver && (
         <div className="w-full flex flex-col gap-6">
           
           {/* Strict Minimalist Header */}

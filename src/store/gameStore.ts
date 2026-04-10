@@ -6,6 +6,11 @@ interface GameState {
   highScore: number;
   streak: number;
   
+  // Epic 7 metrics
+  bestStreak: number;
+  correctAnswers: number;
+  totalAnswers: number;
+  
   incrementScore: () => { pointsAdded: number; newStreak: number };
   decrementScore: () => void;
   resetGame: () => void;
@@ -17,9 +22,12 @@ export const useGameStore = create<GameState>()(
       score: 0,
       highScore: 0,
       streak: 0,
+      bestStreak: 0,
+      correctAnswers: 0,
+      totalAnswers: 0,
 
       incrementScore: () => {
-        const { score, streak, highScore } = get();
+        const { score, streak, highScore, bestStreak, correctAnswers, totalAnswers } = get();
         
         // Increase streak first
         const newStreak = streak + 1;
@@ -37,27 +45,38 @@ export const useGameStore = create<GameState>()(
         set({ 
           score: newScore, 
           streak: newStreak,
-          highScore: Math.max(highScore, newScore)
+          highScore: Math.max(highScore, newScore),
+          bestStreak: Math.max(bestStreak, newStreak),
+          correctAnswers: correctAnswers + 1,
+          totalAnswers: totalAnswers + 1
         });
 
         return { pointsAdded, newStreak };
       },
 
       decrementScore: () => {
-        const { score } = get();
+        const { score, totalAnswers } = get();
         // Minus 5, minimum 0
         const newScore = Math.max(0, score - 5);
-        set({ score: newScore, streak: 0 });
+        set({ 
+          score: newScore, 
+          streak: 0,
+          totalAnswers: totalAnswers + 1 
+        });
       },
 
       resetGame: () => {
-        set({ score: 0, streak: 0 });
+        set({ 
+          score: 0, 
+          streak: 0,
+          bestStreak: 0,
+          correctAnswers: 0,
+          totalAnswers: 0
+        });
       }
     }),
     {
       name: 'design-sight-game-storage',
-      // We only want to persist highScore, but storing the whole state is also fine.
-      // Often games only want highscore stored between full app resets.
       partialize: (state) => ({ highScore: state.highScore }),
     }
   )
