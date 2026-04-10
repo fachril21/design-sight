@@ -4,6 +4,8 @@ import { generateColorCombination } from '../lib/colorGenerator';
 import type { GameRoundColors } from '../lib/colorGenerator';
 import { Heart, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { useGameStore } from '../store/gameStore';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -25,6 +27,8 @@ export default function ContrastGame() {
   const [isShaking, setIsShaking] = useState(false);
   const [currentText, setCurrentText] = useState(TEXT_SAMPLES[0]);
   
+  const { score, streak, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
+
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
 
@@ -48,9 +52,22 @@ export default function ContrastGame() {
     
     if (isCorrect) {
       setFeedback('correct');
+      const { newStreak } = incrementScore();
+      
+      // Fire confetti on milestone streaks
+      if (newStreak === 20 || (newStreak > 20 && newStreak % 10 === 0)) {
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
+      } else if (newStreak === 10) {
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, zIndex: 100 });
+      } else if (newStreak === 5) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 100 });
+      }
+      
     } else {
       setFeedback('wrong');
       setIsShaking(true);
+      decrementScore();
+      
       const newLives = lives - 1;
       setLives(newLives);
       if (newLives <= 0) {
@@ -97,11 +114,16 @@ export default function ContrastGame() {
              <Heart className="w-8 h-8 text-red-500" />
           </div>
           <h2 className="text-3xl font-bold mb-4 tracking-tight text-text-primary">Game Over</h2>
-          <p className="text-sm text-text-secondary mb-8 text-center leading-relaxed">
-            You've run out of lives. Detailed scoring and leaderboards are coming in Epic 7.
-          </p>
+          <div className="flex flex-col items-center gap-1 mb-8">
+            <span className="text-sm font-medium text-text-secondary uppercase tracking-widest">Final Score</span>
+            <span className="text-5xl font-mono font-black text-text-primary">{score}</span>
+            {score >= highScore && score > 0 && (
+              <span className="text-xs font-bold text-emerald-500 mt-2 bg-emerald-500/10 px-2 py-1 rounded">NEW HIGH SCORE!</span>
+            )}
+          </div>
           <Button className="w-full" size="lg" onClick={() => {
             setLives(3);
+            resetGame();
             setIsGameOver(false);
             loadNextRound();
           }}>
@@ -112,7 +134,7 @@ export default function ContrastGame() {
         <div className="w-full flex flex-col gap-6">
           
           {/* Strict Minimalist Header */}
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full mt-2">
             <div className="flex items-center gap-1.5">
               {[0, 1, 2].map((i) => (
                 <motion.div 
@@ -129,11 +151,28 @@ export default function ContrastGame() {
               ))}
             </div>
             
-            <div className="flex items-center gap-2 text-sm font-medium tracking-wide">
-              <span className="text-text-secondary uppercase text-xs tracking-wider">Score</span>
-              <span className="text-text-primary font-mono bg-surface border border-border px-3 py-1 rounded-md">
-                0
-              </span>
+            <div className="flex items-center gap-4 text-sm font-medium tracking-wide">
+              {streak >= 3 && (
+                <motion.div 
+                   initial={{ opacity: 0, x: 10 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   className="flex items-center gap-1.5 text-orange-500 bg-orange-500/10 px-2.5 py-0.5 rounded-md border border-orange-500/20"
+                >
+                  <span className="text-base leading-none">🔥</span>
+                  <span className="font-bold">{streak}</span>
+                </motion.div>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary uppercase text-xs tracking-wider">Score</span>
+                <motion.div 
+                  key={score}
+                  initial={{ scale: 1.1, color: 'var(--color-emerald-500)' }}
+                  animate={{ scale: 1, color: 'var(--color-text-primary)' }}
+                  className="font-mono bg-surface border border-border px-3 py-1 rounded-md min-w-[3rem] text-center"
+                >
+                  {score}
+                </motion.div>
+              </div>
             </div>
           </div>
 
@@ -190,6 +229,16 @@ export default function ContrastGame() {
                     <div className={`px-4 py-1.5 text-sm font-bold uppercase tracking-widest rounded-md ${colors.passesNormal ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
                       {colors.passesNormal ? 'Pass' : 'Fail'}
                     </div>
+
+                    {feedback === 'wrong' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="absolute -bottom-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-black shadow-lg"
+                      >
+                        -5 PTS
+                      </motion.div>
+                    )}
                   </motion.div>
                 </motion.div>
               )}
