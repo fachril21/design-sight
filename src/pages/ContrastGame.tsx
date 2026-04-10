@@ -10,6 +10,7 @@ import confetti from 'canvas-confetti';
 import { useGameStore } from '../store/gameStore';
 import { useUserStore } from '../store/userStore';
 import { submitScore } from '../lib/supabase';
+import { ShareModal } from '../components/ui/ShareModal';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -37,6 +38,7 @@ export default function ContrastGame() {
   const { score, streak, bestStreak, totalAnswers, correctAnswers, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
   const { username, tag } = useUserStore();
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed' | 'offline'>('idle');
+  const [showShare, setShowShare] = useState(false);
 
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
@@ -235,7 +237,7 @@ export default function ContrastGame() {
               Play Again
             </Button>
             <div className="grid grid-cols-2 gap-3 w-full">
-              <Button variant="secondary" size="lg" className="h-12 w-full text-md" disabled>
+              <Button variant="secondary" size="lg" className="h-12 w-full text-md" onClick={() => setShowShare(true)}>
                 Share Score
               </Button>
               <Button variant="secondary" size="lg" className="h-12 w-full text-md" onClick={() => navigate('/leaderboard')}>
@@ -245,6 +247,20 @@ export default function ContrastGame() {
           </div>
         </div>
       </Modal>
+
+      {/* Share Score Modal */}
+      {username && tag && (
+        <ShareModal
+          isOpen={showShare}
+          onClose={() => setShowShare(false)}
+          score={score}
+          bestStreak={bestStreak}
+          accuracy={accuracy}
+          totalAnswers={totalAnswers}
+          username={username}
+          tag={tag}
+        />
+      )}
 
       {!isGameOver && (
         <div className="w-full flex flex-col gap-6">
