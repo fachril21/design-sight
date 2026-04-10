@@ -1,13 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Gamepad2, Trophy, Home as HomeIcon, X, Palette } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-// Simple utility to merge tailwind classes
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../../lib/utils';
 
 const navItems = [
   { name: 'Home', path: '/', icon: HomeIcon },
@@ -31,22 +25,22 @@ export default function Sidebar() {
       {/* Sidebar container */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-[260px] bg-[var(--card)] border-r border-[var(--border)] transition-transform duration-300 ease-in-out px-4 py-6 flex flex-col",
+          "fixed top-0 left-0 z-50 h-full w-[260px] bg-surface border-r border-border transition-transform duration-300 ease-in-out px-4 py-6 flex flex-col",
           "md:translate-x-0 md:static md:h-screen md:shrink-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex items-center justify-between mb-8 pl-2 pr-1">
           <div className="flex items-center gap-2">
-            <div className="bg-[var(--primary)] text-[var(--primary-foreground)] p-1.5 rounded-lg shadow-sm">
+            <div className="bg-accent text-white p-1.5 rounded-lg shadow-sm">
               <Palette size={22} className="-rotate-12" />
             </div>
-            <span className="font-bold text-xl tracking-tight">DesignSight</span>
+            <span className="font-bold text-xl tracking-tight text-text-primary">DesignSight</span>
           </div>
           
           <button 
             onClick={closeSidebar}
-            className="p-1.5 rounded-md text-[var(--secondary-foreground)] hover:bg-[var(--secondary)] md:hidden transition-colors"
+            className="p-1.5 rounded-md text-text-secondary hover:bg-background md:hidden transition-colors"
           >
             <X size={20} />
           </button>
@@ -58,14 +52,13 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               onClick={() => {
-                // close sidebar on mobile when navigating
                 if (window.innerWidth < 768) closeSidebar();
               }}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
                 isActive 
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]" 
-                  : "text-[var(--secondary-foreground)] hover:bg-[var(--secondary)]"
+                  ? "bg-accent/10 text-accent" 
+                  : "text-text-secondary hover:bg-background"
               )}
             >
               {({ isActive }) => (
@@ -84,9 +77,9 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="mt-auto px-3 py-4 bg-[var(--secondary)]/50 rounded-xl">
-          <p className="text-xs font-medium text-[var(--secondary-foreground)]">DesignSight v0.1.0</p>
-          <p className="text-xs text-[var(--secondary-foreground)]/70 mt-1">Arcade for UI/UX Designers</p>
+        <div className="mt-auto px-3 py-4 bg-background/50 rounded-xl">
+          <p className="text-xs font-medium text-text-secondary">DesignSight v0.1.0</p>
+          <p className="text-xs text-text-secondary/70 mt-1">Arcade for UI/UX Designers</p>
         </div>
       </aside>
     </>

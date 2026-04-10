@@ -5,11 +5,11 @@ export default function Header() {
   const { toggleSidebar, isDarkMode, toggleDarkMode } = useUiStore();
 
   return (
-    <header className="h-16 px-6 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between transition-colors">
+    <header className="h-16 px-6 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between transition-colors">
       <div className="flex items-center">
         <button 
           onClick={toggleSidebar}
-          className="p-2 -ml-2 rounded-md hover:bg-[var(--secondary)] text-[var(--foreground)] md:hidden transition-colors"
+          className="p-2 -ml-2 rounded-md hover:bg-surface text-foreground md:hidden transition-colors"
           aria-label="Toggle Menu"
         >
           <Menu size={20} />
@@ -17,10 +17,9 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* We can add profile or stats here later */}
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-full hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors"
+          className="p-2 rounded-full hover:bg-surface text-text-primary transition-colors"
           aria-label="Toggle Dark Mode"
         >
           {isDarkMode ? (

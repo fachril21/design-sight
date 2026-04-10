@@ -4,37 +4,29 @@
 
 @layer base {
   :root {
-    --background: #f8fafc; /* slate-50 */
-    --foreground: #0f172a; /* slate-900 */
+    --background: #ffffff;
+    --foreground: #0a0a0a;
     
-    --card: #ffffff;
-    --card-foreground: #0f172a;
+    --surface: #f9fafb;
+    --border: #e5e7eb;
     
-    --primary: #6366f1; /* indigo-500 */
-    --primary-foreground: #ffffff;
+    --text-primary: #0a0a0a;
+    --text-secondary: #6b7280;
     
-    --secondary: #e2e8f0; /* slate-200 */
-    --secondary-foreground: #1e293b; /* slate-800 */
-    
-    --border: #cbd5e1; /* slate-300 */
-    --accent: #f43f5e; /* rose-500 */
+    --accent: #3b82f6;
   }
 
   .dark {
-    --background: #020617; /* slate-950 */
-    --foreground: #f8fafc; /* slate-50 */
+    --background: #0a0a0a;
+    --foreground: #ffffff;
     
-    --card: #0f172a; /* slate-900 */
-    --card-foreground: #f8fafc;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
     
-    --primary: #818cf8; /* indigo-400 */
-    --primary-foreground: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #a3a3a3;
     
-    --secondary: #1e293b; /* slate-800 */
-    --secondary-foreground: #f1f5f9; /* slate-100 */
-    
-    --border: #334155; /* slate-700 */
-    --accent: #fb7185; /* rose-400 */
+    --accent: #3b82f6;
   }
 
   body {
