@@ -4,11 +4,12 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { generateColorCombination } from '../lib/colorGenerator';
 import type { GameRoundColors } from '../lib/colorGenerator';
-import { Heart, CheckCircle, XCircle } from 'lucide-react';
+import { Heart, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useGameStore } from '../store/gameStore';
 import { useUserStore } from '../store/userStore';
+import { submitScore } from '../lib/supabase';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -35,6 +36,7 @@ export default function ContrastGame() {
   
   const { score, streak, bestStreak, totalAnswers, correctAnswers, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
   const { username, tag } = useUserStore();
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed' | 'offline'>('idle');
 
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
@@ -50,8 +52,31 @@ export default function ContrastGame() {
     setHasStarted(true);
     setLives(3);
     resetGame();
+    setSubmitStatus('idle');
     loadNextRound();
   };
+
+  // Auto-submit score to Supabase when game ends
+  useEffect(() => {
+    if (!isGameOver || submitStatus !== 'idle') return;
+    if (!username || !tag) return;
+
+    const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+
+    setSubmitStatus('submitting');
+    submitScore({
+      username,
+      user_tag: tag,
+      score,
+      streak_best: bestStreak,
+      accuracy,
+      questions_answered: totalAnswers,
+    }).then((result) => {
+      setSubmitStatus(result ? 'submitted' : 'offline');
+    }).catch(() => {
+      setSubmitStatus('failed');
+    });
+  }, [isGameOver]);
 
   const loadNextRound = () => {
     setColors(generateColorCombination());
@@ -184,6 +209,22 @@ export default function ContrastGame() {
               <span className="text-xs font-medium text-text-secondary uppercase tracking-widest mb-1">Questions Answered</span>
               <span className="text-xl font-bold text-text-primary">{totalAnswers}</span>
             </div>
+          </div>
+
+          {/* Score submission status */}
+          <div className="flex items-center justify-center gap-2 mb-4 text-xs font-medium">
+            {submitStatus === 'submitting' && (
+              <><Loader2 size={14} className="animate-spin text-text-secondary" /><span className="text-text-secondary">Submitting score...</span></>
+            )}
+            {submitStatus === 'submitted' && (
+              <><CheckCircle size={14} className="text-emerald-500" /><span className="text-emerald-500">Score submitted to leaderboard!</span></>
+            )}
+            {submitStatus === 'failed' && (
+              <><XCircle size={14} className="text-rose-500" /><span className="text-rose-500">Failed to submit score</span></>
+            )}
+            {submitStatus === 'offline' && (
+              <span className="text-text-secondary">Offline mode — score saved locally</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-3 w-full">
