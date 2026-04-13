@@ -1,52 +1,67 @@
-import { describe, expect, it } from 'vitest';
-import { hexToRgb, getLuminance, getContrastRatio, passesWCAG } from './wcag';
+import { describe, it, expect } from 'vitest';
+import { hexToRgb, getLuminance, getContrastRatio, passesWCAG, rgbToHex } from './wcag';
 
-describe('WCAG Math Engine', () => {
-  it('correctly converts hex to RGB', () => {
+describe('WCAG Math Functions', () => {
+  it('converts hex to rgb correctly', () => {
     expect(hexToRgb('#000000')).toEqual({ r: 0, g: 0, b: 0 });
     expect(hexToRgb('#FFFFFF')).toEqual({ r: 255, g: 255, b: 255 });
-    expect(hexToRgb('#ff0000')).toEqual({ r: 255, g: 0, b: 0 });
-    expect(hexToRgb('#00ff00')).toEqual({ r: 0, g: 255, b: 0 });
-    expect(hexToRgb('#0000ff')).toEqual({ r: 0, g: 0, b: 255 });
-    
-    // Short hex format
+    expect(hexToRgb('#FF0000')).toEqual({ r: 255, g: 0, b: 0 });
+    expect(hexToRgb('123456')).toEqual({ r: 18, g: 52, b: 86 });
+  });
+
+  it('handles shorthand hex codes', () => {
     expect(hexToRgb('#F00')).toEqual({ r: 255, g: 0, b: 0 });
-    
-    // Without hashtag
-    expect(hexToRgb('FFFFFF')).toEqual({ r: 255, g: 255, b: 255 });
+    expect(hexToRgb('369')).toEqual({ r: 51, g: 102, b: 153 });
   });
 
-  it('correctly calculates relative luminance', () => {
-    expect(getLuminance(0, 0, 0)).toBeCloseTo(0);
-    expect(getLuminance(255, 255, 255)).toBeCloseTo(1);
-    expect(getLuminance(255, 0, 0)).toBeCloseTo(0.2126);
-    expect(getLuminance(0, 255, 0)).toBeCloseTo(0.7152);
-    expect(getLuminance(0, 0, 255)).toBeCloseTo(0.0722);
+  it('converts rgb to hex correctly', () => {
+    expect(rgbToHex(0, 0, 0)).toBe('#000000');
+    expect(rgbToHex(255, 255, 255)).toBe('#FFFFFF');
+    expect(rgbToHex(255, 0, 0)).toBe('#FF0000');
   });
 
-  it('correctly calculates standard WebAIM contrast cases', () => {
-    // Black and white
-    expect(getContrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21);
-    expect(getContrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21);
+  it('calculates expected luminance values', () => {
+    // Pure black and pure white
+    expect(getLuminance(0, 0, 0)).toBeCloseTo(0, 4);
+    expect(getLuminance(255, 255, 255)).toBeCloseTo(1, 4);
     
-    // Same colors
-    expect(getContrastRatio('#123456', '#123456')).toBeCloseTo(1);
-    expect(getContrastRatio('#FFFFFF', '#FFFFFF')).toBeCloseTo(1);
+    // Pure red (WCAG standard mapping)
+    expect(getLuminance(255, 0, 0)).toBeCloseTo(0.2126, 4);
+  });
+
+  it('calculates the precise contrast ratio', () => {
+    // Black and white should be 21:1
+    expect(getContrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21, 2);
     
-    // Known WebAIM examples
-    // Example: #0000FF (blue) and #FFFFFF (white)
-    expect(getContrastRatio('#0000FF', '#FFFFFF')).toBeCloseTo(8.59, 1);
+    // Identical colors should be 1:1
+    expect(getContrastRatio('#123456', '#123456')).toBeCloseTo(1, 2);
+
+    // Some specific tested values from WCAG color contrast analyzer tools
+    // Red (#FF0000) and White (#FFFFFF) is ~ 3.998:1
+    expect(getContrastRatio('#FF0000', '#FFFFFF')).toBeCloseTo(3.998, 2);
     
-    // Example: #767676 and #FFFFFF
-    expect(getContrastRatio('#767676', '#FFFFFF')).toBeCloseTo(4.54, 1);
+    // Blue (#0000FF) and White (#FFFFFF) is ~ 8.59:1
+    expect(getContrastRatio('#0000FF', '#FFFFFF')).toBeCloseTo(8.59, 2);
   });
 
   it('validates pass/fail properly', () => {
-    expect(passesWCAG(4.5, 'normal')).toBe(true);
-    expect(passesWCAG(4.49, 'normal')).toBe(false);
+    // White on Black - 21:1
+    expect(passesWCAG(21, 'normal')).toBe(true);
+    expect(passesWCAG(21, 'large')).toBe(true);
+
+    // Red on White - ~4.0:1
+    expect(passesWCAG(4.0, 'normal')).toBe(false);
+    expect(passesWCAG(4.0, 'large')).toBe(true); // Passes for large text since >= 3.0
     
+    // Low contrast - 1.5:1
+    expect(passesWCAG(1.5, 'normal')).toBe(false);
+    expect(passesWCAG(1.5, 'large')).toBe(false);
+    
+    // Exactly 4.5
+    expect(passesWCAG(4.5, 'normal')).toBe(true);
+    
+    // Exactly 3.0
     expect(passesWCAG(3.0, 'large')).toBe(true);
-    expect(passesWCAG(2.99, 'large')).toBe(false);
-    expect(passesWCAG(4.5, 'large')).toBe(true);
+    expect(passesWCAG(3.0, 'normal')).toBe(false);
   });
 });
