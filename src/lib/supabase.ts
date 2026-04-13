@@ -52,11 +52,70 @@ export async function submitScore(entry: LeaderboardInsert): Promise<Leaderboard
     return null;
   }
 
+  const gameId = entry.game_id ?? 'contrast-checker';
+
+  // 1. Check for existing score for this user
+  const { data: existingData, error: fetchError } = await supabase
+    .from('leaderboard')
+    .select('id, score')
+    .eq('game_id', gameId)
+    .eq('username', entry.username)
+    .eq('user_tag', entry.user_tag)
+    .order('score', { ascending: false })
+    .limit(1);
+
+  if (fetchError) {
+    console.error('[DesignSight] Failed to check existing score:', fetchError.message);
+    return null;
+  }
+
+  const existingEntry = existingData?.[0];
+
+  // 2. If user already has a score on the leaderboard
+  if (existingEntry) {
+    if (entry.score > existingEntry.score) {
+      // New high score -> update it
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .update({
+          score: entry.score,
+          streak_best: entry.streak_best,
+          accuracy: entry.accuracy,
+          questions_answered: entry.questions_answered,
+          created_at: new Date().toISOString(), // Update timestamp
+        })
+        .eq('id', existingEntry.id)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error('[DesignSight] Failed to update high score:', error.message);
+        return null;
+      }
+      
+      // Attempt cleanup of any duplicated rows in the background
+      supabase
+        .from('leaderboard')
+        .delete()
+        .eq('game_id', gameId)
+        .eq('username', entry.username)
+        .eq('user_tag', entry.user_tag)
+        .neq('id', existingEntry.id)
+        .then();
+        
+      return data as LeaderboardEntry;
+    } else {
+      // Score is lower or equal, don't update
+      return null;
+    }
+  }
+
+  // 3. No existing score -> insert new row
   const { data, error } = await supabase
     .from('leaderboard')
     .insert({
       ...entry,
-      game_id: entry.game_id ?? 'contrast-checker',
+      game_id: gameId,
     })
     .select()
     .single();

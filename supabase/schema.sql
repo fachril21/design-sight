@@ -33,3 +33,23 @@ create policy "Public leaderboard read access"
 create policy "Public leaderboard insert access"
   on leaderboard for insert
   with check (true);
+
+create policy "Public leaderboard update access"
+  on leaderboard for update
+  using (true)
+  with check (true);
+
+create policy "Public leaderboard delete access"
+  on leaderboard for delete
+  using (true);
+
+-- 5. Cleanup existing duplicates (Optional: run if you already have duplicate scores)
+-- DELETE FROM leaderboard
+-- WHERE id NOT IN (
+--     SELECT DISTINCT ON (game_id, full_username) id
+--     FROM leaderboard
+--     ORDER BY game_id, full_username, score DESC
+-- );
+
+-- 6. Enforce Unique Score per user per game (Optional: run after deleting duplicates)
+-- ALTER TABLE leaderboard ADD CONSTRAINT unique_user_game UNIQUE (game_id, username, user_tag);
