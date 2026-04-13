@@ -1,12 +1,13 @@
 import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import PageTransition from '../components/layout/PageTransition';
 
 export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <PageTransition className="flex flex-col gap-8 pb-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Game Hub</h1>
         <p className="text-text-secondary">Welcome to DesignSight. Select a game to begin training your design eye.</p>
@@ -69,6 +70,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

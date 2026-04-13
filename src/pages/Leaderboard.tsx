@@ -5,6 +5,7 @@ import { fetchLeaderboard, supabase } from '../lib/supabase';
 import type { LeaderboardEntry } from '../lib/supabase';
 import { useUserStore } from '../store/userStore';
 import { motion } from 'framer-motion';
+import PageTransition from '../components/layout/PageTransition';
 
 type TimeFilter = 'today' | 'week' | 'all';
 
@@ -103,7 +104,7 @@ export default function Leaderboard() {
   // ── No Supabase configured ────────────────────────────
   if (!supabase) {
     return (
-      <div className="flex flex-col gap-6">
+      <PageTransition className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Trophy size={28} className="text-accent" /> Global Leaderboard
@@ -117,12 +118,12 @@ export default function Leaderboard() {
             Supabase is not configured. Copy <code className="bg-background px-1.5 py-0.5 rounded text-xs">.env.example</code> to <code className="bg-background px-1.5 py-0.5 rounded text-xs">.env</code> and add your project keys.
           </p>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageTransition className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div className="flex flex-col gap-1">
@@ -269,6 +270,6 @@ export default function Leaderboard() {
           </Button>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

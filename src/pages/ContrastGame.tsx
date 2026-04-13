@@ -11,6 +11,9 @@ import { useGameStore } from '../store/gameStore';
 import { useUserStore } from '../store/userStore';
 import { submitScore } from '../lib/supabase';
 import { ShareModal } from '../components/ui/ShareModal';
+import { playCorrectSound, playWrongSound, playMilestoneSound } from '../lib/audio';
+import { vibrateCorrect, vibrateWrong, vibrateMilestone } from '../lib/haptics';
+import PageTransition from '../components/layout/PageTransition';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -36,7 +39,7 @@ export default function ContrastGame() {
   const [currentText, setCurrentText] = useState(TEXT_SAMPLES[0]);
   
   const { score, streak, bestStreak, totalAnswers, correctAnswers, incrementScore, decrementScore, resetGame, highScore } = useGameStore();
-  const { username, tag } = useUserStore();
+  const { username, tag, soundEnabled, hapticsEnabled } = useUserStore();
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed' | 'offline'>('idle');
   const [showShare, setShowShare] = useState(false);
 
@@ -99,19 +102,31 @@ export default function ContrastGame() {
       setFeedback('correct');
       const { newStreak } = incrementScore();
       
+      if (soundEnabled) playCorrectSound();
+      if (hapticsEnabled) vibrateCorrect();
+      
       // Fire confetti on milestone streaks
       if (newStreak === 20 || (newStreak > 20 && newStreak % 10 === 0)) {
         confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
+        if (soundEnabled) playMilestoneSound();
+        if (hapticsEnabled) vibrateMilestone();
       } else if (newStreak === 10) {
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, zIndex: 100 });
+        if (soundEnabled) playMilestoneSound();
+        if (hapticsEnabled) vibrateMilestone();
       } else if (newStreak === 5) {
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 100 });
+        if (soundEnabled) playMilestoneSound();
+        if (hapticsEnabled) vibrateMilestone();
       }
       
     } else {
       setFeedback('wrong');
       setIsShaking(true);
       decrementScore();
+      
+      if (soundEnabled) playWrongSound();
+      if (hapticsEnabled) vibrateWrong();
       
       const newLives = lives - 1;
       setLives(newLives);
@@ -149,7 +164,7 @@ export default function ContrastGame() {
   const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
+    <PageTransition className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
       
       {/* Start Game Modal */}
       <Modal 
@@ -301,6 +316,7 @@ export default function ContrastGame() {
                   initial={{ scale: 1.1, color: 'var(--color-emerald-500)' }}
                   animate={{ scale: 1, color: 'var(--color-text-primary)' }}
                   className="font-mono bg-surface border border-border px-3 py-1 rounded-md min-w-[3rem] text-center"
+                  aria-live="polite"
                 >
                   {score}
                 </motion.div>
@@ -374,7 +390,7 @@ export default function ContrastGame() {
                       {colors.ratio.toFixed(2)}:1
                     </div>
                     
-                    <div className={`px-4 py-1.5 text-sm font-bold uppercase tracking-widest rounded-md ${colors.passesNormal ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                    <div className={`px-4 py-1.5 text-sm font-bold uppercase tracking-widest rounded-md ${colors.passesNormal ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`} aria-live="assertive">
                       {wasTimeout ? 'TIME OUT' : colors.passesNormal ? 'Pass' : 'Fail'}
                     </div>
 
@@ -422,6 +438,6 @@ export default function ContrastGame() {
           
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -24,6 +24,7 @@ export function Modal({
   className,
   preventOutsideClick = false,
 }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
   
   // Close on Escape key
   useEffect(() => {
@@ -48,6 +49,56 @@ export function Modal({
     };
   }, [isOpen]);
 
+  // Focus trap and restore
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const previouslyFocused = document.activeElement as HTMLElement;
+
+    // Small delay to let Framer Motion mount the DOM
+    let timer: number;
+    const setupFocus = () => {
+      if (!modalRef.current) return;
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) { // Shift + Tab
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else { // Tab
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleTabKey);
+      firstElement.focus();
+
+      return () => {
+        window.removeEventListener('keydown', handleTabKey);
+      };
+    };
+
+    timer = window.setTimeout(setupFocus, 100);
+
+    return () => {
+      window.clearTimeout(timer);
+      previouslyFocused?.focus();
+    };
+  }, [isOpen]);
+
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
@@ -65,6 +116,7 @@ export function Modal({
 
           {/* Modal Panel */}
           <motion.div
+            ref={modalRef}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -109,6 +161,7 @@ export function Modal({
                 size="sm" 
                 className="absolute right-4 top-4 h-8 w-8 p-0 rounded-full z-10 shadow-none bg-background/50 backdrop-blur-md" 
                 onClick={onClose}
+                aria-label="Close modal"
                >
                  <X size={16} />
                </Button>

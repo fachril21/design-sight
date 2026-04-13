@@ -1,9 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { UsernameModal } from '../ui/UsernameModal';
 
 export default function Shell() {
+  const location = useLocation();
+
   return (
     <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] w-full antialiased font-sans transition-colors duration-300">
       <UsernameModal />
@@ -12,7 +15,11 @@ export default function Shell() {
         <Header />
         <main className="flex-1 overflow-y-auto w-full">
           <div className="container mx-auto px-4 md:px-8 py-8 max-w-6xl">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <div key={location.pathname}>
+                <Outlet />
+              </div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

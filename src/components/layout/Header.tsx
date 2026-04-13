@@ -1,8 +1,10 @@
 import { useUiStore } from '../../store/uiStore';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { useUserStore } from '../../store/userStore';
+import { Menu, Moon, Sun, Volume2, VolumeX, Vibrate, VibrateOff } from 'lucide-react';
 
 export default function Header() {
   const { toggleSidebar, isDarkMode, toggleDarkMode } = useUiStore();
+  const { soundEnabled, toggleSound, hapticsEnabled, toggleHaptics } = useUserStore();
 
   return (
     <header className="h-16 px-6 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between transition-colors">
@@ -16,7 +18,22 @@ export default function Header() {
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1">
+        <button
+          onClick={toggleSound}
+          className="p-2 rounded-full hover:bg-surface text-text-primary transition-colors"
+          aria-label={soundEnabled ? "Disable Sound" : "Enable Sound"}
+        >
+          {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} className="text-text-secondary" />}
+        </button>
+        <button
+          onClick={toggleHaptics}
+          className="p-2 rounded-full hover:bg-surface text-text-primary transition-colors"
+          aria-label={hapticsEnabled ? "Disable Haptics" : "Enable Haptics"}
+        >
+          {hapticsEnabled ? <Vibrate size={18} /> : <VibrateOff size={18} className="text-text-secondary" />}
+        </button>
+        <div className="w-px h-6 bg-border mx-2" />
         <button
           onClick={toggleDarkMode}
           className="p-2 rounded-full hover:bg-surface text-text-primary transition-colors"

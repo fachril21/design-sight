@@ -5,9 +5,13 @@ interface UserState {
   username: string | null;
   tag: string | null;
   isModalOpen: boolean;
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
   
   setUsername: (name: string) => void;
   openModal: () => void;
+  toggleSound: () => void;
+  toggleHaptics: () => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -16,6 +20,8 @@ export const useUserStore = create<UserState>()(
       username: null,
       tag: null,
       isModalOpen: false,
+      soundEnabled: false,
+      hapticsEnabled: true,
 
       setUsername: (name: string) => {
         // Tag is a random 4 digit number padded with zeroes
@@ -30,13 +36,21 @@ export const useUserStore = create<UserState>()(
 
       openModal: () => {
         set({ isModalOpen: true });
-      }
+      },
+
+      toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+      toggleHaptics: () => set((state) => ({ hapticsEnabled: !state.hapticsEnabled })),
     }),
     {
       name: 'designsight_user',
       // We persist the username and tag across sessions. We do not persist the modal open state,
       // because we want the modal to automatically calculate its requirement based on presence of username.
-      partialize: (state) => ({ username: state.username, tag: state.tag }),
+      partialize: (state) => ({ 
+        username: state.username, 
+        tag: state.tag,
+        soundEnabled: state.soundEnabled,
+        hapticsEnabled: state.hapticsEnabled
+      }),
     }
   )
 );
