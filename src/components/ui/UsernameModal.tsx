@@ -18,6 +18,7 @@ export function UsernameModal() {
   // Sync input string with store when modal opens (if they want to change it)
   useEffect(() => {
     if (isModalOpen && username) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInputName(username);
     } else if (isModalOpen && !username) {
       setInputName('');

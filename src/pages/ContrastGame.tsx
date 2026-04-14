@@ -46,6 +46,12 @@ export default function ContrastGame() {
   // Need to clear timeout if component unmounts
   const timerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
 
+  const loadNextRound = () => {
+    setColors(generateColorCombination());
+    const randomText = TEXT_SAMPLES[Math.floor(Math.random() * TEXT_SAMPLES.length)];
+    setCurrentText(randomText);
+  };
+
   useEffect(() => {
     loadNextRound();
     return () => {
@@ -81,13 +87,7 @@ export default function ContrastGame() {
     }).catch(() => {
       setSubmitStatus('failed');
     });
-  }, [isGameOver]);
-
-  const loadNextRound = () => {
-    setColors(generateColorCombination());
-    const randomText = TEXT_SAMPLES[Math.floor(Math.random() * TEXT_SAMPLES.length)];
-    setCurrentText(randomText);
-  };
+  }, [isGameOver, submitStatus, username, tag, score, bestStreak, totalAnswers, correctAnswers]);
 
   const handleGuess = (userPassGuess: boolean | 'timeout') => {
     if (feedback !== 'idle' || isGameOver || !colors || !hasStarted) return;
@@ -157,6 +157,7 @@ export default function ContrastGame() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedback, isGameOver, colors, lives, hasStarted]); // inject hasStarted into dependencies
 
   if (!colors) return null; // loading stat

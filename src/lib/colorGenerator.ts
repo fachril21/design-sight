@@ -34,6 +34,7 @@ function generateBaseColors(): { bg: string, fg: string } {
 }
 
 // Lightens or darkens a hex color slightly for gradient purposes
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function slightlyShiftColor(_hex: string): string {
   // Simple heuristic: just generate a random color for now
   // For better visual design, we typically blend it. Here we just return another random one.

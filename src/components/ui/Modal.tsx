@@ -56,7 +56,6 @@ export function Modal({
     const previouslyFocused = document.activeElement as HTMLElement;
 
     // Small delay to let Framer Motion mount the DOM
-    let timer: number;
     const setupFocus = () => {
       if (!modalRef.current) return;
       const focusableElements = modalRef.current.querySelectorAll(
@@ -91,7 +90,7 @@ export function Modal({
       };
     };
 
-    timer = window.setTimeout(setupFocus, 100);
+    const timer = window.setTimeout(setupFocus, 100);
 
     return () => {
       window.clearTimeout(timer);
