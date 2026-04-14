@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Gamepad2, Trophy, Home as HomeIcon, X, Palette, UserCircle2 } from 'lucide-react';
+import { Gamepad2, Trophy, Home as HomeIcon, X, Palette, UserCircle2, Type } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore';
 import { useUserStore } from '../../store/userStore';
 import { cn } from '../../lib/utils';
@@ -7,6 +7,7 @@ import { cn } from '../../lib/utils';
 const navItems = [
   { name: 'Home', path: '/', icon: HomeIcon },
   { name: 'Contrast Checker', path: '/game/contrast', icon: Gamepad2 },
+  { name: 'Kerning Challenge', path: '/game/kerning-challenge', icon: Type },
   { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
 ];
 
