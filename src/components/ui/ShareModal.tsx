@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import { Modal } from './Modal';
 import { Button } from './Button';

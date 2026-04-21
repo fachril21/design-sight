@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getRandomWord, KerningWord } from '../lib/kerning';
+import { getRandomWord, type KerningWord } from '../lib/kerning';
 
 export interface KerningRoundResult {
   word: string;

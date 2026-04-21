@@ -76,7 +76,7 @@ export default function Home() {
                 {/* CTA */}
                 <div className="mt-2">
                   <Button
-                    size="default"
+                    size="md"
                     className="w-full sm:w-auto px-6"
                     onClick={e => {
                       e.stopPropagation();
