@@ -89,27 +89,44 @@ function DraggableLetter({
   return (
     <motion.div
       className="absolute top-0 select-none"
-      style={{ left: x, fontSize, fontFamily: GAME_FONT, fontWeight: 600, lineHeight: 1 }}
-      drag={isLocked ? false : 'x'}
+      style={{ left: 0, fontSize, fontFamily: GAME_FONT, fontWeight: 600, lineHeight: 1 }}
+      initial={{ x }}
+      drag={isLocked || isComparing ? false : 'x'}
       dragMomentum={false}
       dragElastic={0}
       onDragEnd={(_, info) => {
-        onDragEnd(x + info.offset.x);
+        if (!isComparing) onDragEnd(x + info.offset.x);
       }}
       onClick={onClick}
-      whileDrag={{ scale: 1.05, zIndex: 10 }}
-      animate={
-        isComparing && targetX !== undefined
-          ? { x: targetX - x, color: offColour }
-          : { x: 0, color: '#e5e7eb' }
-      }
-      transition={{ type: 'spring', stiffness: 200, damping: 28 }}
+      whileDrag={!isComparing ? { scale: 1.05, zIndex: 10 } : undefined}
+      animate={{ 
+        x, 
+        color: isComparing && targetX !== undefined ? offColour : '#e5e7eb' 
+      }}
+      transition={{ 
+        x: { duration: 0 },
+        color: { duration: 0.2 }
+      }}
     >
+      <AnimatePresence>
+        {isComparing && targetX !== undefined && !isLocked && (
+          <motion.span
+            initial={{ x: 0, opacity: 0 }}
+            animate={{ x: targetX - x, opacity: 0.25 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 28 }}
+            className="absolute top-0 left-0 text-text-primary pointer-events-none"
+          >
+            {letter}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
       <span
         className={[
           'relative cursor-grab active:cursor-grabbing',
-          isLocked ? 'cursor-default opacity-90' : '',
-          isSelected && !isLocked
+          isLocked || isComparing ? 'cursor-default opacity-90' : '',
+          isSelected && !isLocked && !isComparing
             ? 'after:absolute after:-bottom-2 after:left-0 after:right-0 after:h-0.5 after:bg-blue-400 after:rounded-full'
             : '',
         ].join(' ')}

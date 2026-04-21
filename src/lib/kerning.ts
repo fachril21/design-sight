@@ -115,9 +115,27 @@ export function scramblePositions(targetPositions: number[]): number[] {
   return targetPositions.map((x, i) => {
     // Lock first and last
     if (i === 0 || i === targetPositions.length - 1) return x;
-    // Shift middle letters by ±15–40 px
-    const magnitude = 15 + Math.random() * 25;
+    
+    const spaceLeft = x - targetPositions[i - 1];
+    const spaceRight = targetPositions[i + 1] - x;
+    
+    // Limit max shift to ~35% of the available space to adjacent letters.
+    // This prevents letters from overlapping/intersecting and guarantees
+    // they stay in a readable order.
+    const maxShiftLeft = spaceLeft * 0.35;
+    const maxShiftRight = spaceRight * 0.35;
+    
     const direction = Math.random() > 0.5 ? 1 : -1;
-    return x + magnitude * direction;
+    
+    let magnitude = 0;
+    if (direction === 1) {
+      // Random magnitude between 30% and 100% of maxShiftRight
+      magnitude = maxShiftRight * (0.3 + Math.random() * 0.7);
+    } else {
+      // Random magnitude between 30% and 100% of maxShiftLeft
+      magnitude = maxShiftLeft * (0.3 + Math.random() * 0.7);
+    }
+    
+    return x + direction * magnitude;
   });
 }
