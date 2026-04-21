@@ -1,10 +1,9 @@
 import React from 'react';
 
 export interface ShareCardProps {
+  gameName: string;
   score: number;
-  bestStreak: number;
-  accuracy: number;
-  totalAnswers: number;
+  stats: { label: string; value: string | number; colorClass?: string }[];
   username: string;
   tag: string;
 }
@@ -15,7 +14,7 @@ export interface ShareCardProps {
  * Actual size: 1200×630. Retina is handled by pixelRatio in toPng().
  */
 export const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(
-  ({ score, bestStreak, accuracy, totalAnswers, username, tag }, ref) => {
+  ({ gameName, score, stats, username, tag }, ref) => {
     return (
       <div
         ref={ref}
@@ -94,7 +93,7 @@ export const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(
                 letterSpacing: '3px',
               }}
             >
-              Contrast Checker
+              {gameName}
             </span>
           </div>
 
@@ -135,26 +134,19 @@ export const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(
                 border: '1px solid rgba(255,255,255,0.08)',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                  Best Streak
-                </span>
-                <span style={{ fontSize: 24, fontWeight: 800, color: '#f59e0b' }}>🔥 {bestStreak}</span>
-              </div>
-              <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                  Accuracy
-                </span>
-                <span style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>✓ {accuracy}%</span>
-              </div>
-              <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                  Questions
-                </span>
-                <span style={{ fontSize: 24, fontWeight: 800, color: '#ffffff' }}>{totalAnswers}</span>
-              </div>
+              {stats.map((stat, i) => (
+                <React.Fragment key={stat.label}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                      {stat.label}
+                    </span>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: stat.colorClass || '#ffffff' }}>{stat.value}</span>
+                  </div>
+                  {i < stats.length - 1 && (
+                    <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </div>
 

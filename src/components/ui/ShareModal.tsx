@@ -60,7 +60,8 @@ export function ShareModal({ isOpen, onClose, ...cardProps }: ShareModalProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback: copy text
-      const text = `I scored ${cardProps.score.toLocaleString()} on DesignSight Contrast Checker! 🎯 Best Streak: ${cardProps.bestStreak} | Accuracy: ${cardProps.accuracy}%`;
+      const statsText = cardProps.stats.map(s => `${s.label}: ${s.value}`).join(' | ');
+      const text = `I scored ${cardProps.score.toLocaleString()} on DesignSight ${cardProps.gameName}! 🎯 ${statsText}`;
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -68,7 +69,8 @@ export function ShareModal({ isOpen, onClose, ...cardProps }: ShareModalProps) {
   }, [generatePng, cardProps]);
 
   const handleShare = useCallback(async () => {
-    const shareText = `I scored ${cardProps.score.toLocaleString()} on DesignSight Contrast Checker! 🎯🔥 Best Streak: ${cardProps.bestStreak} | Accuracy: ${cardProps.accuracy}% — Can you beat it?`;
+    const statsText = cardProps.stats.map(s => `${s.label}: ${s.value}`).join(' | ');
+    const shareText = `I scored ${cardProps.score.toLocaleString()} on DesignSight ${cardProps.gameName}! 🎯🔥 ${statsText} — Can you beat it?`;
 
     // Try native Web Share API first (mobile)
     if (navigator.share) {
@@ -141,7 +143,7 @@ export function ShareModal({ isOpen, onClose, ...cardProps }: ShareModalProps) {
                   <span className="text-sm">🎨</span>
                   <span className="text-[11px] font-extrabold text-white tracking-tight">DesignSight</span>
                 </div>
-                <span className="text-[8px] font-semibold text-white/40 uppercase tracking-[3px]">Contrast Checker</span>
+                <span className="text-[8px] font-semibold text-white/40 uppercase tracking-[3px]">{cardProps.gameName}</span>
               </div>
 
               {/* Center */}
@@ -151,20 +153,17 @@ export function ShareModal({ isOpen, onClose, ...cardProps }: ShareModalProps) {
                   {cardProps.score.toLocaleString()}
                 </span>
                 <div className="flex gap-4 mt-2 px-4 py-1.5 bg-white/5 rounded-lg border border-white/10">
-                  <div className="flex flex-col items-center">
-                    <span className="text-[6px] font-semibold text-white/40 uppercase tracking-widest">Streak</span>
-                    <span className="text-xs font-extrabold text-amber-500">🔥 {cardProps.bestStreak}</span>
-                  </div>
-                  <div className="w-px bg-white/10" />
-                  <div className="flex flex-col items-center">
-                    <span className="text-[6px] font-semibold text-white/40 uppercase tracking-widest">Accuracy</span>
-                    <span className="text-xs font-extrabold text-emerald-500">✓ {cardProps.accuracy}%</span>
-                  </div>
-                  <div className="w-px bg-white/10" />
-                  <div className="flex flex-col items-center">
-                    <span className="text-[6px] font-semibold text-white/40 uppercase tracking-widest">Questions</span>
-                    <span className="text-xs font-extrabold text-white">{cardProps.totalAnswers}</span>
-                  </div>
+                  {cardProps.stats.map((stat, i) => (
+                    <React.Fragment key={stat.label}>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[6px] font-semibold text-white/40 uppercase tracking-widest">{stat.label}</span>
+                        <span className={`text-xs font-extrabold ${stat.colorClass || 'text-white'}`}>{stat.value}</span>
+                      </div>
+                      {i < cardProps.stats.length - 1 && (
+                        <div className="w-px bg-white/10" />
+                      )}
+                    </React.Fragment>
+                  ))}
                 </div>
               </div>
 

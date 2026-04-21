@@ -11,6 +11,10 @@ import {
   type ScoreResult,
 } from '../lib/kerning';
 import { useKerningStore } from '../store/kerningStore';
+import { useUserStore } from '../store/userStore';
+import { submitScore } from '../lib/supabase';
+import { ShareModal } from '../components/ui/ShareModal';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const GAME_FONT = '"Inter", system-ui, sans-serif';
@@ -171,14 +175,51 @@ export default function KerningGame() {
   // Measure positions from the DOM
   const { ghostRef, targetPositions } = useLetterPositions(currentWord);
 
+  const { username, tag } = useUserStore();
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed' | 'offline'>('idle');
+  const [showShare, setShowShare] = useState(false);
+
+  // Finalise score
+  const totalScore = roundResults.reduce((s, r) => s + r.score, 0);
+  const avgScore = roundResults.length
+    ? Math.round(totalScore / roundResults.length)
+    : 0;
+
+  // Auto-submit score to Supabase when game ends
+  useEffect(() => {
+    if (!isGameOver || submitStatus !== 'idle') return;
+    if (!username || !tag) return;
+
+    setSubmitStatus('submitting');
+
+    // Calculate a proxy value for accuracy based on perfect kerning rounds
+    const perfectCount = roundResults.filter(r => r.tier === 'Perfect').length;
+    const mockAccuracy = totalRounds > 0 ? Math.round((perfectCount / totalRounds) * 100) : 0;
+
+    submitScore({
+      username,
+      user_tag: tag,
+      score: avgScore,
+      streak_best: 0, // Not applicable
+      accuracy: mockAccuracy,
+      questions_answered: totalRounds,
+      game_id: 'kerning-challenge',
+    }).then((result) => {
+      setSubmitStatus(result ? 'submitted' : 'offline');
+    }).catch(() => {
+      setSubmitStatus('failed');
+    });
+  }, [isGameOver, submitStatus, username, tag, avgScore, roundResults, totalRounds]);
+
   // ── Start / word change ────────────────────────────────────────────────────
   useEffect(() => {
     if (!hasStarted) return;
     if (!currentWord) {
+      if (isGameOver) return; // Prevent startGame from overwriting game over state
       startGame();
       return;
     }
-  }, [hasStarted, currentWord, startGame]);
+  }, [hasStarted, currentWord, startGame, isGameOver]);
 
   // When target positions resolve (after DOM measurement), scramble them
   useEffect(() => {
@@ -259,12 +300,6 @@ export default function KerningGame() {
   // Rough container height = fontSize × 1.2 for descenders, plus padding
   const containerHeight = fontSize * 1.4;
 
-  // Finalise score
-  const totalScore = roundResults.reduce((s, r) => s + r.score, 0);
-  const avgScore = roundResults.length
-    ? Math.round(totalScore / roundResults.length)
-    : 0;
-
   return (
     <PageTransition className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
 
@@ -332,28 +367,71 @@ export default function KerningGame() {
             ))}
           </div>
 
+          <div className="flex items-center justify-center gap-2 mb-2 w-full text-xs font-medium">
+            {submitStatus === 'submitting' && (
+              <><Loader2 size={14} className="animate-spin text-text-secondary" /><span className="text-text-secondary">Submitting score...</span></>
+            )}
+            {submitStatus === 'submitted' && (
+              <><CheckCircle size={14} className="text-emerald-500" /><span className="text-emerald-500">Score submitted to leaderboard!</span></>
+            )}
+            {submitStatus === 'failed' && (
+              <><XCircle size={14} className="text-rose-500" /><span className="text-rose-500">Failed to submit score</span></>
+            )}
+            {submitStatus === 'offline' && (
+              <span className="text-text-secondary">Offline mode — score saved locally</span>
+            )}
+          </div>
+
           <div className="flex flex-col gap-3 w-full">
             <Button
               size="lg"
               className="w-full"
               onClick={() => {
                 resetGame();
+                setSubmitStatus('idle');
                 setHasStarted(false);
               }}
             >
               Play Again
             </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={() => navigate('/leaderboard')}
-            >
-              View Leaderboard
-            </Button>
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => setShowShare(true)}
+              >
+                Share Score
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate('/leaderboard')}
+              >
+                View Leaderboard
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
+
+      {/* Share Score Modal */}
+      {username && tag && (
+        <ShareModal
+          isOpen={showShare}
+          onClose={() => setShowShare(false)}
+          gameName="Kerning Challenge"
+          score={avgScore}
+          stats={[
+            { label: 'Words', value: totalRounds.toString(), colorClass: 'text-amber-500' },
+            { label: 'Perfect', value: roundResults.filter(r => r.tier === 'Perfect').length.toString(), colorClass: 'text-emerald-500' },
+            { label: 'Wrong', value: roundResults.filter(r => r.tier === 'Wrong').length.toString(), colorClass: 'text-rose-500' },
+          ]}
+          username={username}
+          tag={tag}
+        />
+      )}
 
       {/* ── Game Header ──────────────────────────────────────────────────── */}
       {hasStarted && !isGameOver && (

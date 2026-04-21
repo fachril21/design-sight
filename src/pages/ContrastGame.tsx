@@ -269,10 +269,13 @@ export default function ContrastGame() {
         <ShareModal
           isOpen={showShare}
           onClose={() => setShowShare(false)}
+          gameName="Contrast Checker"
           score={score}
-          bestStreak={bestStreak}
-          accuracy={accuracy}
-          totalAnswers={totalAnswers}
+          stats={[
+            { label: 'Streak', value: `🔥 ${bestStreak}`, colorClass: 'text-amber-500' },
+            { label: 'Accuracy', value: `✓ ${accuracy}%`, colorClass: 'text-emerald-500' },
+            { label: 'Questions', value: totalAnswers.toString(), colorClass: 'text-white' },
+          ]}
           username={username}
           tag={tag}
         />

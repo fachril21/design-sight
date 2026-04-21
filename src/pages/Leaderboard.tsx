@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import PageTransition from '../components/layout/PageTransition';
 
 type TimeFilter = 'today' | 'week' | 'all';
+type GameId = 'contrast-checker' | 'kerning-challenge';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -50,6 +51,7 @@ export default function Leaderboard() {
   const fullUsername = username && tag ? `${username}#${tag}` : null;
 
   const [filter, setFilter] = useState<TimeFilter>('all');
+  const [gameId, setGameId] = useState<GameId>('contrast-checker');
   const [page, setPage] = useState(0);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -61,7 +63,7 @@ export default function Leaderboard() {
   const CACHE_TTL = 30_000; // 30 seconds
 
   const load = useCallback(async () => {
-    const cacheKey = `${filter}_${page}`;
+    const cacheKey = `${gameId}_${filter}_${page}`;
     const cached = cache.current[cacheKey];
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
       setEntries(cached.data);
@@ -76,6 +78,7 @@ export default function Leaderboard() {
 
     try {
       const { data, count } = await fetchLeaderboard({
+        gameId,
         limit: ITEMS_PER_PAGE,
         offset: page * ITEMS_PER_PAGE,
         since: getFilterDate(filter),
@@ -88,16 +91,16 @@ export default function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page]);
+  }, [filter, page, gameId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Reset page when filter changes
+  // Reset page when filter or game changes
   useEffect(() => {
     setPage(0);
-  }, [filter]);
+  }, [filter, gameId]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
@@ -130,7 +133,21 @@ export default function Leaderboard() {
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Trophy size={28} className="text-accent" /> Global Leaderboard
           </h1>
-          <p className="text-text-secondary text-sm">Contrast Checker — Top scores worldwide</p>
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => setGameId('contrast-checker')}
+              className={`text-sm font-semibold transition-colors ${gameId === 'contrast-checker' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
+            >
+              Contrast Checker
+            </button>
+            <span className="text-border px-1">•</span>
+            <button
+              onClick={() => setGameId('kerning-challenge')}
+              className={`text-sm font-semibold transition-colors ${gameId === 'kerning-challenge' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
+            >
+              Kerning Challenge
+            </button>
+          </div>
         </div>
 
         {/* Time Filters */}
@@ -158,8 +175,8 @@ export default function Leaderboard() {
           <div className="w-10 text-center">Rank</div>
           <div className="flex-1">Player</div>
           <div className="w-20 text-right">Score</div>
-          <div className="w-16 text-right hidden sm:block">Streak</div>
-          <div className="w-16 text-right hidden md:block">Accuracy</div>
+          {gameId === 'contrast-checker' && <div className="w-16 text-right hidden sm:block">Streak</div>}
+          <div className="w-24 text-right hidden md:block">{gameId === 'kerning-challenge' ? '100% Rounds' : 'Accuracy'}</div>
         </div>
 
         {/* Loading State */}
@@ -231,10 +248,12 @@ export default function Leaderboard() {
                       {entry.score.toLocaleString()}
                     </span>
                   </div>
-                  <div className="w-16 text-right hidden sm:block">
-                    <span className="text-sm font-mono text-text-secondary">🔥 {entry.streak_best}</span>
-                  </div>
-                  <div className="w-16 text-right hidden md:block">
+                  {gameId === 'contrast-checker' && (
+                    <div className="w-16 text-right hidden sm:block">
+                      <span className="text-sm font-mono text-text-secondary">🔥 {entry.streak_best}</span>
+                    </div>
+                  )}
+                  <div className="w-24 text-right hidden md:block">
                     <span className="text-sm font-mono text-text-secondary">{entry.accuracy}%</span>
                   </div>
                 </motion.div>
