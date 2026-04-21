@@ -27,6 +27,13 @@ const TIER_COLOURS: Record<string, string> = {
   Wrong: 'text-rose-400',
 };
 
+// SVG Hand Icons for Custom Cursors (Base64 encoded)
+// Contrast ensured by using black hands with white strokes (light theme) and white hands with black strokes (dark theme).
+const CURSOR_GRAB_BLACK = 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJibGFjayIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0xOCAxMVY2YTIgMiAwIDAgMC00IDB2NU0xNCAxMFY0YTIgMiAwIDAgMC00IDB2Nk0xMCAxMFY2YTIgMiAwIDAgMC00IDB2NU0xOCA4YTIgMiAwIDAgMSA0IDB2NmE4IDggMCAwIDEtOCA4aC0yYy0yLjggMC00LjUtLjg2LTUuOTktMi4zNGwtMy42LTMuNmEyIDIgMCAwIDEgMi44Mi0yLjgyTDcgMTUiLz48L3N2Zz4=';
+const CURSOR_GRABBING_BLACK = 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJibGFjayIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0xMiAxMXYtNU0xMCAxMXYtNk04IDExVjhNMTQgMTF2LTlhMiAyIDAgMCAwLTQgMHY2TTggMTF2LTRhMiAyIDAgMCAwLTQgMHY1TDE4IDhhMiAyIDAgMCAxIDQgMHY2YTggOCAwIDAgMS04IDhoLTJjLTIuOCAwLTQuNS0uODYtNS45OS0yLjM0bC0zLjYtMy42YTIgMiAwIDAgMSAyLjgyLTIuODJMNyAxNSIvPjwvc3ZnPg==';
+const CURSOR_GRAB_WHITE = 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0xOCAxMVY2YTIgMiAwIDAgMC00IDB2NU0xNCAxMFY0YTIgMiAwIDAgMC00IDB2Nk0xMCAxMFY2YTIgMiAwIDAgMC00IDB2NU0xOCA4YTIgMiAwIDAgMSA0IDB2NmE4IDggMCAwIDEtOCA4aC0yYy0yLjggMC00LjUtLjg2LTUuOTktMi4zNGwtMy42LTMuNmEyIDIgMCAwIDEgMi44Mi0yLjgyTDcgMTUiLz48L3N2Zz4=';
+const CURSOR_GRABBING_WHITE = 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0xMiAxMXYtNU0xMCAxMXYtNk04IDExVjhNMTQgMTF2LTlhMiAyIDAgMCAwLTQgMHY2TTggMTF2LTRhMiAyIDAgMCAwLTQgMHY1TDE4IDhhMiAyIDAgMCAxIDQgMHY2YTggOCAwIDAgMS04IDhoLTJjLTIuOCAwLTQuNS0uODYtNS45OS0yLjM0bC0zLjYtMy42YTIgMiAwIDAgMSAyLjgyLTIuODJMNyAxNSIvPjwvc3ZnPg==';
+
 // ─── Letter Measurement & Dragging ───────────────────────────────────────────
 
 /**
@@ -58,7 +65,6 @@ interface DraggableLetterProps {
   fontSize: number;
   onDragEnd: (newX: number) => void;
   onClick: () => void;
-  /** In comparing mode, show target flash */
   targetX?: number;
   isComparing: boolean;
 }
@@ -76,7 +82,6 @@ function DraggableLetter({
 }: DraggableLetterProps) {
   const localX = useRef(x);
 
-  // Sync when the word changes (x resets from parent)
   useEffect(() => {
     localX.current = x;
   }, [x]);
@@ -124,8 +129,10 @@ function DraggableLetter({
 
       <span
         className={[
-          'relative cursor-grab active:cursor-grabbing',
-          isLocked || isComparing ? 'cursor-default opacity-90' : '',
+          'relative',
+          isLocked || isComparing 
+            ? 'cursor-default opacity-90' 
+            : `cursor-[url("data:image/svg+xml;base64,${CURSOR_GRAB_BLACK}"),_grab] active:cursor-[url("data:image/svg+xml;base64,${CURSOR_GRABBING_BLACK}"),_grabbing] dark:cursor-[url("data:image/svg+xml;base64,${CURSOR_GRAB_WHITE}"),_grab] dark:active:cursor-[url("data:image/svg+xml;base64,${CURSOR_GRABBING_WHITE}"),_grabbing]`,
           isSelected && !isLocked && !isComparing
             ? 'after:absolute after:-bottom-2 after:left-0 after:right-0 after:h-0.5 after:bg-blue-400 after:rounded-full'
             : '',
@@ -177,42 +184,25 @@ export default function KerningGame() {
     resetGame,
   } = useKerningStore();
 
-  // Whether the intro modal has been shown/dismissed
   const [hasStarted, setHasStarted] = useState(false);
-
-  // Track player's letter x-positions (only movable letters)
   const [letterPositions, setLetterPositions] = useState<number[]>([]);
-
-  // Keyboard-selected letter index
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-
-  // Result for the current round (shown during comparing phase)
   const [roundResult, setRoundResult] = useState<ScoreResult | null>(null);
+  const [timeLeft, setTimeLeft] = useState(20);
 
-  // Time remaining for the current round
-  const [timeLeft, setTimeLeft] = useState(10);
-
-  // Measure positions from the DOM
   const { ghostRef, targetPositions } = useLetterPositions(currentWord);
 
   const { username, tag } = useUserStore();
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed' | 'offline'>('idle');
   const [showShare, setShowShare] = useState(false);
 
-  // Finalise score
   const totalScore = roundResults.reduce((s, r) => s + r.score, 0);
-  const avgScore = roundResults.length
-    ? Math.round(totalScore / roundResults.length)
-    : 0;
 
-  // Auto-submit score to Supabase when game ends
   useEffect(() => {
     if (!isGameOver || submitStatus !== 'idle') return;
     if (!username || !tag) return;
 
     setSubmitStatus('submitting');
-
-    // Calculate a proxy value for accuracy based on perfect kerning rounds
     const perfectCount = roundResults.filter(r => r.tier === 'Perfect').length;
     const mockAccuracy = totalRounds > 0 ? Math.round((perfectCount / totalRounds) * 100) : 0;
 
@@ -220,7 +210,7 @@ export default function KerningGame() {
       username,
       user_tag: tag,
       score: totalScore,
-      streak_best: 0, // Not applicable
+      streak_best: 0,
       accuracy: mockAccuracy,
       questions_answered: totalRounds,
       game_id: 'kerning-challenge',
@@ -229,19 +219,17 @@ export default function KerningGame() {
     }).catch(() => {
       setSubmitStatus('failed');
     });
-  }, [isGameOver, submitStatus, username, tag, avgScore, roundResults, totalRounds]);
+  }, [isGameOver, submitStatus, username, tag, roundResults, totalRounds, totalScore]);
 
-  // ── Start / word change ────────────────────────────────────────────────────
   useEffect(() => {
     if (!hasStarted) return;
     if (!currentWord) {
-      if (isGameOver) return; // Prevent startGame from overwriting game over state
+      if (isGameOver) return;
       startGame();
       return;
     }
   }, [hasStarted, currentWord, startGame, isGameOver]);
 
-  // When target positions resolve (after DOM measurement), scramble them
   useEffect(() => {
     if (targetPositions.length === 0) return;
     setLetterPositions(scramblePositions(targetPositions));
@@ -249,7 +237,6 @@ export default function KerningGame() {
     setRoundResult(null);
   }, [targetPositions]);
 
-  // ── Timer countdown ────────────────────────────────────────────────────────
   const positionsRef = useRef({ letter: letterPositions, target: targetPositions });
   useEffect(() => {
     positionsRef.current = { letter: letterPositions, target: targetPositions };
@@ -282,14 +269,13 @@ export default function KerningGame() {
     }
   }, [timeLeft, isComparing, isGameOver, currentWord, submitRound]);
 
-  // ── Keyboard controls ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!hasStarted || isComparing || isGameOver) return;
 
     const handleKey = (e: KeyboardEvent) => {
       if (!currentWord) return;
       const wordLen = currentWord.word.length;
-      const movableCount = wordLen - 2; // exclude first & last
+      const movableCount = wordLen - 2;
 
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -303,7 +289,7 @@ export default function KerningGame() {
       if (selectedIdx === null) return;
 
       const step = e.shiftKey ? 5 : 1;
-      const physicalIdx = selectedIdx + 1; // offset by 1 (skip locked first letter)
+      const physicalIdx = selectedIdx + 1;
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -326,38 +312,28 @@ export default function KerningGame() {
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasStarted, isComparing, isGameOver, selectedIdx, currentWord]);
 
-  // ── Submit / Compare ───────────────────────────────────────────────────────
   const handleSubmit = () => {
     if (!currentWord || isComparing) return;
-
-    // movable letter positions = indices 1 … n-2
     const movablePlayer = letterPositions.slice(1, -1);
     const movableTarget = targetPositions.slice(1, -1);
-
     const result = calculateWordKerningScore(movablePlayer, movableTarget);
     setRoundResult(result);
     submitRound(result.score, result.tier);
   };
 
   const handleNext = () => {
-    setTimeLeft(10);
+    setTimeLeft(20);
     loadNextWord();
   };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
   const letters = currentWord ? currentWord.word.split('') : [];
   const fontSize = currentWord?.fontSize ?? 120;
-
-  // Rough container height = fontSize × 1.2 for descenders, plus padding
   const containerHeight = fontSize * 1.4;
 
   return (
     <PageTransition className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto min-h-[70vh] pb-8 pt-4 px-4 font-sans">
-
-      {/* ── Intro Modal ─────────────────────────────────────────────────── */}
       <Modal
         isOpen={!hasStarted}
         onClose={() => navigate('/')}
@@ -382,7 +358,7 @@ export default function KerningGame() {
             className="w-full"
             onClick={() => {
               setHasStarted(true);
-              setTimeLeft(10);
+              setTimeLeft(20);
               startGame();
             }}
           >
@@ -391,7 +367,6 @@ export default function KerningGame() {
         </div>
       </Modal>
 
-      {/* ── Game Over Modal ──────────────────────────────────────────────── */}
       <Modal
         isOpen={isGameOver}
         onClose={() => {}}
@@ -401,7 +376,6 @@ export default function KerningGame() {
         className="max-w-md"
       >
         <div className="flex flex-col items-center gap-6 pt-2">
-          {/* Big score */}
           <div className="flex flex-col items-center gap-1">
             <span className="text-xs uppercase tracking-widest text-text-secondary font-semibold">
               Total Score
@@ -410,7 +384,6 @@ export default function KerningGame() {
             <span className="text-text-secondary text-sm">out of 1000</span>
           </div>
 
-          {/* Per-round results */}
           <div className="grid grid-cols-5 gap-2 w-full">
             {roundResults.map((r, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
@@ -443,7 +416,7 @@ export default function KerningGame() {
               className="w-full"
               onClick={() => {
                 resetGame();
-                setTimeLeft(10);
+                setTimeLeft(20);
                 setSubmitStatus('idle');
                 setHasStarted(false);
               }}
@@ -472,7 +445,6 @@ export default function KerningGame() {
         </div>
       </Modal>
 
-      {/* Share Score Modal */}
       {username && tag && (
         <ShareModal
           isOpen={showShare}
@@ -489,15 +461,13 @@ export default function KerningGame() {
         />
       )}
 
-      {/* ── Game Header ──────────────────────────────────────────────────── */}
       {hasStarted && !isGameOver && (
         <div className="flex flex-col w-full mb-6 gap-4">
-          {/* Timer Progress Bar */}
           <div className="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
             <motion.div 
               className={`h-full ${timeLeft <= 3 ? 'bg-rose-500' : 'bg-blue-500'}`}
               initial={{ width: '100%' }}
-              animate={{ width: `${(timeLeft / 10) * 100}%` }}
+              animate={{ width: `${(timeLeft / 20) * 100}%` }}
               transition={{ ease: "linear", duration: 1 }}
             />
           </div>
@@ -538,10 +508,8 @@ export default function KerningGame() {
         </div>
       )}
 
-      {/* ── Letter Stage ─────────────────────────────────────────────────── */}
       {hasStarted && currentWord && !isGameOver && (
         <>
-          {/* Ghost (invisible measurer) */}
           <div
             ref={ghostRef}
             aria-hidden="true"
@@ -553,7 +521,6 @@ export default function KerningGame() {
             ))}
           </div>
 
-          {/* Visible stage */}
           <div
             className="relative w-full flex items-center justify-center overflow-visible bg-surface border border-border rounded-2xl"
             style={{ height: containerHeight }}
@@ -561,7 +528,7 @@ export default function KerningGame() {
             {letterPositions.length === letters.length &&
               letters.map((letter, i) => {
                 const isLocked = i === 0 || i === letters.length - 1;
-                const movableIdx = i - 1; // index into movable set (for selectedIdx)
+                const movableIdx = i - 1;
 
                 return (
                   <DraggableLetter
@@ -588,7 +555,6 @@ export default function KerningGame() {
               })}
           </div>
 
-          {/* Helper labels */}
           <div className="flex justify-between w-full mt-2 px-1 text-xs text-text-secondary font-medium">
             <span>🔒 Locked</span>
             {!isComparing && (
@@ -601,7 +567,6 @@ export default function KerningGame() {
             <span>🔒 Locked</span>
           </div>
 
-          {/* ── Compare overlay feedback ───────────────────────────────── */}
           <AnimatePresence>
             {isComparing && roundResult && (
               <motion.div
@@ -615,7 +580,6 @@ export default function KerningGame() {
             )}
           </AnimatePresence>
 
-          {/* ── Action Buttons ─────────────────────────────────────────── */}
           <div className="flex gap-4 mt-6 w-full max-w-sm mx-auto">
             {!isComparing ? (
               <Button size="lg" className="flex-1 h-14 text-base" onClick={handleSubmit}>
