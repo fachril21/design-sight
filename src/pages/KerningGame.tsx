@@ -14,7 +14,7 @@ import { useKerningStore } from '../store/kerningStore';
 import { useUserStore } from '../store/userStore';
 import { submitScore } from '../lib/supabase';
 import { ShareModal } from '../components/ui/ShareModal';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Timer } from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const GAME_FONT = '"Inter", system-ui, sans-serif';
@@ -189,6 +189,9 @@ export default function KerningGame() {
   // Result for the current round (shown during comparing phase)
   const [roundResult, setRoundResult] = useState<ScoreResult | null>(null);
 
+  // Time remaining for the current round
+  const [timeLeft, setTimeLeft] = useState(10);
+
   // Measure positions from the DOM
   const { ghostRef, targetPositions } = useLetterPositions(currentWord);
 
@@ -216,7 +219,7 @@ export default function KerningGame() {
     submitScore({
       username,
       user_tag: tag,
-      score: avgScore,
+      score: totalScore,
       streak_best: 0, // Not applicable
       accuracy: mockAccuracy,
       questions_answered: totalRounds,
@@ -245,6 +248,39 @@ export default function KerningGame() {
     setSelectedIdx(null);
     setRoundResult(null);
   }, [targetPositions]);
+
+  // ── Timer countdown ────────────────────────────────────────────────────────
+  const positionsRef = useRef({ letter: letterPositions, target: targetPositions });
+  useEffect(() => {
+    positionsRef.current = { letter: letterPositions, target: targetPositions };
+  }, [letterPositions, targetPositions]);
+
+  useEffect(() => {
+    if (!hasStarted || isComparing || isGameOver || !currentWord) return;
+    
+    const timerId = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [hasStarted, isComparing, isGameOver, currentWord]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && !isComparing && !isGameOver && currentWord && positionsRef.current.target.length > 0) {
+      const p = positionsRef.current;
+      const movablePlayer = p.letter.slice(1, -1);
+      const movableTarget = p.target.slice(1, -1);
+      const result = calculateWordKerningScore(movablePlayer, movableTarget);
+      setRoundResult(result);
+      submitRound(result.score, result.tier);
+    }
+  }, [timeLeft, isComparing, isGameOver, currentWord, submitRound]);
 
   // ── Keyboard controls ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -307,6 +343,7 @@ export default function KerningGame() {
   };
 
   const handleNext = () => {
+    setTimeLeft(10);
     loadNextWord();
   };
 
@@ -345,6 +382,7 @@ export default function KerningGame() {
             className="w-full"
             onClick={() => {
               setHasStarted(true);
+              setTimeLeft(10);
               startGame();
             }}
           >
@@ -366,10 +404,10 @@ export default function KerningGame() {
           {/* Big score */}
           <div className="flex flex-col items-center gap-1">
             <span className="text-xs uppercase tracking-widest text-text-secondary font-semibold">
-              Average Score
+              Total Score
             </span>
-            <span className="text-8xl font-black font-mono text-text-primary">{avgScore}</span>
-            <span className="text-text-secondary text-sm">out of 100</span>
+            <span className="text-8xl font-black font-mono text-text-primary">{totalScore}</span>
+            <span className="text-text-secondary text-sm">out of 1000</span>
           </div>
 
           {/* Per-round results */}
@@ -405,6 +443,7 @@ export default function KerningGame() {
               className="w-full"
               onClick={() => {
                 resetGame();
+                setTimeLeft(10);
                 setSubmitStatus('idle');
                 setHasStarted(false);
               }}
@@ -439,7 +478,7 @@ export default function KerningGame() {
           isOpen={showShare}
           onClose={() => setShowShare(false)}
           gameName="Kerning Challenge"
-          score={avgScore}
+          score={totalScore}
           stats={[
             { label: 'Words', value: totalRounds.toString(), colorClass: 'text-amber-500' },
             { label: 'Perfect', value: roundResults.filter(r => r.tier === 'Perfect').length.toString(), colorClass: 'text-emerald-500' },
@@ -452,31 +491,49 @@ export default function KerningGame() {
 
       {/* ── Game Header ──────────────────────────────────────────────────── */}
       {hasStarted && !isGameOver && (
-        <div className="flex items-center justify-between w-full mb-6">
-          <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-            <span className="font-semibold text-text-primary">{currentRound}</span>
-            <span>/</span>
-            <span>{totalRounds}</span>
-            <span className="ml-1">words</span>
+        <div className="flex flex-col w-full mb-6 gap-4">
+          {/* Timer Progress Bar */}
+          <div className="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+            <motion.div 
+              className={`h-full ${timeLeft <= 3 ? 'bg-rose-500' : 'bg-blue-500'}`}
+              initial={{ width: '100%' }}
+              animate={{ width: `${(timeLeft / 10) * 100}%` }}
+              transition={{ ease: "linear", duration: 1 }}
+            />
           </div>
-          <div className="flex gap-1.5">
-            {roundResults.map((r, i) => (
-              <div
-                key={i}
-                title={`${r.word}: ${r.score}`}
-                className={`w-5 h-5 rounded-md text-[10px] font-black flex items-center justify-center ${
-                  r.score >= 90
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : r.score >= 70
-                    ? 'bg-lime-500/20 text-lime-400'
-                    : r.score >= 50
-                    ? 'bg-yellow-500/20 text-yellow-400'
-                    : 'bg-rose-500/20 text-rose-400'
-                }`}
-              >
-                {r.score}
-              </div>
-            ))}
+          
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+              <span className="font-semibold text-text-primary">{currentRound}</span>
+              <span>/</span>
+              <span>{totalRounds}</span>
+              <span className="ml-1">words</span>
+              <span className="mx-2">•</span>
+              <Timer size={16} className={timeLeft <= 3 ? "text-rose-500 animate-pulse" : "text-text-secondary"} />
+              <span className={`font-mono font-bold ${timeLeft <= 3 ? "text-rose-500 animate-pulse" : ""}`}>
+                00:{timeLeft.toString().padStart(2, '0')}
+              </span>
+            </div>
+            
+            <div className="flex gap-1.5">
+              {roundResults.map((r, i) => (
+                <div
+                  key={i}
+                  title={`${r.word}: ${r.score}`}
+                  className={`w-5 h-5 rounded-md text-[10px] font-black flex items-center justify-center ${
+                    r.score >= 90
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : r.score >= 70
+                      ? 'bg-lime-500/20 text-lime-400'
+                      : r.score >= 50
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-rose-500/20 text-rose-400'
+                  }`}
+                >
+                  {r.score}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
