@@ -170,7 +170,7 @@ export default function ContrastGame() {
       {/* Start Game Modal */}
       <Modal 
         isOpen={!hasStarted} 
-        onClose={() => {}} 
+        onClose={() => navigate('/')} 
         title="Contrast Checker"
         description="Are you ready to test your design sight?"
         preventOutsideClick

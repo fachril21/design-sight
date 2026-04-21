@@ -323,7 +323,7 @@ export default function KerningGame() {
       {/* ── Intro Modal ─────────────────────────────────────────────────── */}
       <Modal
         isOpen={!hasStarted}
-        onClose={() => {}}
+        onClose={() => navigate('/')}
         title="Kerning Challenge"
         description="Space the letters so they feel visually balanced."
         preventOutsideClick
