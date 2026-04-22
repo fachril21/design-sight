@@ -197,7 +197,13 @@ export default function ContrastGame() {
 
       <Modal 
         isOpen={isGameOver} 
-        onClose={() => {}} 
+        onClose={() => {
+          setIsGameOver(false);
+          resetGame();
+          setSubmitStatus('idle');
+          setHasStarted(false);
+          navigate('/');
+        }} 
         title="GAME OVER"
         description={username ? `Good effort, ${username}#${tag}!` : undefined}
         preventOutsideClick

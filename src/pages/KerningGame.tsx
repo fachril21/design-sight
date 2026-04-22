@@ -369,7 +369,12 @@ export default function KerningGame() {
 
       <Modal
         isOpen={isGameOver}
-        onClose={() => {}}
+        onClose={() => {
+          resetGame();
+          setSubmitStatus('idle');
+          setHasStarted(false);
+          navigate('/');
+        }}
         title="Game Over"
         description="Here's how well you kern."
         preventOutsideClick
