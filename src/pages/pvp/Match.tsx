@@ -24,7 +24,6 @@ export default function Match() {
   const [isShaking, setIsShaking] = useState(false);
   const [wasTimeout, setWasTimeout] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
-  const [lives, setLives] = useState(3);
   
   // Kerning specific state
   const [kerningPositions, setKerningPositions] = useState<number[]>([]);
@@ -126,11 +125,6 @@ export default function Match() {
       setIsShaking(true);
       if (soundEnabled) playWrongSound();
       if (hapticsEnabled) vibrateWrong();
-      const newLives = lives - 1;
-      setLives(newLives);
-      if (newLives <= 0) {
-        // We lost, but match continues until opponent also loses or questions end
-      }
     }
 
     setTimeout(() => {
@@ -139,14 +133,12 @@ export default function Match() {
       setWasTimeout(false);
       
       const nextIdx = currentRoundIdx + 1;
-      if (nextIdx < match.questions.length && (isCorrect || lives > 1)) {
+      if (nextIdx < match.questions.length) {
         setCurrentRoundIdx(nextIdx);
       } else {
         // Game ended for this player
-        if (lives <= 0 || nextIdx >= match.questions.length) {
-          endMatch(matchId!, myScore >= opponentScore ? currentUsername : opponentName!);
-          navigate(`/pvp/results/${matchId}`);
-        }
+        endMatch(matchId!, myScore >= opponentScore ? currentUsername : opponentName!);
+        navigate(`/pvp/results/${matchId}`);
       }
     }, 1500);
   };
@@ -196,11 +188,12 @@ export default function Match() {
             </div>
 
             <div className="flex flex-col items-end">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-text-secondary">Lives</span>
-              <div className="flex gap-1 mt-1">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className={`w-3 h-3 rounded-full ${i < lives ? 'bg-rose-500' : 'bg-surface border border-border'}`} />
-                ))}
+              <span className="text-[10px] uppercase tracking-widest font-bold text-text-secondary">Progress</span>
+              <div className="w-24 h-2 bg-surface border border-border rounded-full overflow-hidden mt-1">
+                <div 
+                  className="h-full bg-primary transition-all duration-500" 
+                  style={{ width: `${((currentRoundIdx + 1) / match.questions.length) * 100}%` }}
+                />
               </div>
             </div>
           </div>
@@ -221,7 +214,6 @@ export default function Match() {
               isShaking={isShaking}
               wasTimeout={wasTimeout}
               onGuess={handleContrastGuess}
-              disabled={lives <= 0}
             />
           ) : (
             <div className="flex flex-col gap-6">
