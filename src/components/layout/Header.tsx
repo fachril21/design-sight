@@ -1,6 +1,7 @@
 import { useUiStore } from '../../store/uiStore';
 import { useUserStore } from '../../store/userStore';
 import { Menu, Moon, Sun, Volume2, VolumeX, Vibrate, VibrateOff } from 'lucide-react';
+import { ConnectionStatus } from '../ConnectionStatus';
 
 export default function Header() {
   const { toggleSidebar, isDarkMode, toggleDarkMode } = useUiStore();
@@ -18,7 +19,9 @@ export default function Header() {
         </button>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
+        <ConnectionStatus />
+        <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
         <button
           onClick={toggleSound}
           className="p-2 rounded-full hover:bg-surface text-text-primary transition-colors"
