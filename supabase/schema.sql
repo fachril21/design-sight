@@ -130,3 +130,123 @@ create policy "Anyone can view participants" on room_participants for select usi
 create policy "Users can update their own data" on room_participants for update using (
   username = current_setting('request.jwt.claims', true)::json->>'username'
 );
+
+-- 8. RPC Functions for Matchmaking & PvP
+-- Function: Find or create match
+create or replace function find_match(
+  p_username text,
+  p_game_id text,
+  p_questions jsonb
+)
+returns uuid as $$
+declare
+  v_match_id uuid;
+  v_waiting_match uuid;
+begin
+  -- Auto-cancel any existing waiting or in_progress matches for this user to prevent zombie rooms
+  update match_sessions
+  set status = 'cancelled'
+  where (player1 = p_username or player2 = p_username)
+    and status in ('waiting', 'in_progress');
+
+  -- Check for waiting match
+  select id into v_waiting_match
+  from match_sessions
+  where game_id = p_game_id
+    and status = 'waiting'
+    and player1 != p_username -- Restored: prevent matching with yourself
+    and created_at > now() - interval '2 minutes'
+  order by created_at asc
+  limit 1;
+
+  if v_waiting_match is not null then
+    -- Join existing match
+    update match_sessions
+    set 
+      player2 = p_username,
+      status = 'in_progress',
+      started_at = now()
+    where id = v_waiting_match
+    returning id into v_match_id;
+  
+    return v_match_id;
+  else
+    -- Create new match
+    insert into match_sessions (game_id, player1, status, questions)
+    values (p_game_id, p_username, 'waiting', p_questions)
+    returning id into v_match_id;
+  
+    return v_match_id;
+  end if;
+end;
+$$ language plpgsql security definer;
+
+-- Function: Update player ready status
+create or replace function update_match_ready(
+  p_match_id uuid,
+  p_username text,
+  p_is_ready boolean
+)
+returns void as $$
+begin
+  update match_sessions
+  set 
+    player1_ready = case when player1 = p_username then p_is_ready else player1_ready end,
+    player2_ready = case when player2 = p_username then p_is_ready else player2_ready end
+  where id = p_match_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function: Update player score
+create or replace function update_match_score(
+  p_match_id uuid,
+  p_username text,
+  p_score integer,
+  p_round integer
+)
+returns void as $$
+begin
+  update match_sessions
+  set 
+    player1_score = case when player1 = p_username then p_score else player1_score end,
+    player2_score = case when player2 = p_username then p_score else player2_score end,
+    current_round = greatest(current_round, p_round)
+  where id = p_match_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function: End match
+create or replace function end_match(
+  p_match_id uuid,
+  p_winner text
+)
+returns void as $$
+begin
+  update match_sessions
+  set 
+    status = 'completed',
+    ended_at = now()
+  where id = p_match_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function: Leave/Cancel match
+create or replace function leave_match(
+  p_match_id uuid,
+  p_username text
+)
+returns void as $$
+begin
+  update match_sessions
+  set 
+    status = 'cancelled',
+    ended_at = now()
+  where id = p_match_id
+    and (player1 = p_username or player2 = p_username)
+    and status in ('waiting', 'in_progress');
+end;
+$$ language plpgsql security definer;
+
+-- 9. Enable Realtime Replication
+-- This is critical for useMatchSession to receive updates!
+alter publication supabase_realtime add table match_sessions;

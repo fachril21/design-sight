@@ -74,16 +74,28 @@ export default function Home() {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-2">
+                <div className="mt-2 flex flex-col sm:flex-row gap-3">
                   <Button
                     size="md"
-                    className="w-full sm:w-auto px-6"
+                    className="flex-1 px-6 h-12"
                     onClick={e => {
                       e.stopPropagation();
                       navigate(game.path);
                     }}
                   >
-                    Play Now
+                    Play Solo
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="flex-1 px-6 h-12 gap-2 border-primary/20 hover:border-primary/40 text-primary"
+                    onClick={e => {
+                      e.stopPropagation();
+                      const gameId = game.path.split('/').pop();
+                      navigate(`/pvp/matchmaking?gameId=${gameId === 'contrast' ? 'contrast-checker' : gameId}`);
+                    }}
+                  >
+                    1v1 PvP
                   </Button>
                 </div>
               </div>

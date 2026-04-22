@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useRealtimeSubscription } from './useRealtimeSubscription';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export interface MatchSession {
   id: string;
@@ -21,11 +21,40 @@ export interface MatchSession {
 export const useMatchSession = (matchId: string) => {
   const [match, setMatch] = useState<MatchSession | null>(null);
 
-  useRealtimeSubscription(`match:${matchId}`, 'UPDATE', (payload) => {
-    if (payload.new && payload.new.id === matchId) {
-      setMatch(payload.new as MatchSession);
-    }
-  });
+  useEffect(() => {
+    if (!matchId) return;
+
+    // Fetch initial state
+    const fetchMatch = async () => {
+      const { data, error } = await supabase
+        .from('match_sessions')
+        .select('*')
+        .eq('id', matchId)
+        .single();
+      
+      if (data && !error) {
+        setMatch(data as MatchSession);
+      }
+    };
+
+    fetchMatch();
+
+    // Subscribe to updates
+    const channel = supabase.channel(`match:${matchId}`)
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'match_sessions',
+        filter: `id=eq.${matchId}` 
+      }, (payload) => {
+        setMatch(payload.new as MatchSession);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId]);
 
   return match;
 };

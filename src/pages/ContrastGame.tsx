@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { generateColorCombination } from '../lib/colorGenerator';
 import type { GameRoundColors } from '../lib/colorGenerator';
-import { Heart, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Heart, CheckCircle, XCircle, Loader2, Timer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useGameStore } from '../store/gameStore';
@@ -14,6 +14,7 @@ import { ShareModal } from '../components/ui/ShareModal';
 import { playCorrectSound, playWrongSound, playMilestoneSound } from '../lib/audio';
 import { vibrateCorrect, vibrateWrong, vibrateMilestone } from '../lib/haptics';
 import PageTransition from '../components/layout/PageTransition';
+import { ContrastBoard } from '../components/game/ContrastBoard';
 
 const TEXT_SAMPLES = [
   "Visual Hierarchy",
@@ -334,12 +335,14 @@ export default function ContrastGame() {
             </div>
           </div>
 
-          {/* Progress Timer */}
-          {hasStarted && !isGameOver && colors && (
-            <div className="w-full h-1.5 bg-surface border border-border rounded-full overflow-hidden mt-3 mb-2 shrink-0 relative">
+      {hasStarted && colors && !isGameOver && (
+        <div className="flex flex-col w-full max-w-2xl mx-auto">
+          {/* Stats Bar */}
+          <div className="flex flex-col w-full mb-8 gap-4">
+            <div className="w-full h-2 bg-surface border border-border rounded-full overflow-hidden shrink-0 relative">
               {feedback === 'idle' && (
                 <motion.div
-                  key={"timer" + colors.backgroundStr + score} // reset animation natively
+                  key={"timer" + colors.backgroundStr + score}
                   initial={{ width: "100%", backgroundColor: "#10b981" }}
                   animate={{ width: "0%", backgroundColor: "#f43f5e" }}
                   transition={{ duration: 5, ease: "linear" }}
@@ -348,103 +351,33 @@ export default function ContrastGame() {
                 />
               )}
             </div>
-          )}
-
-          {/* The Pure Game Board Container */}
-          <motion.div 
-            animate={isShaking ? { x: [-5, 5, -5, 5, 0] } : {}}
-            transition={{ duration: 0.3 }}
-            className="w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden border border-border shadow-sm flex items-center justify-center relative"
-            style={{ background: colors.backgroundStr }}
-          >
-            {/* The Actual Text Being Tested - No blending, pure CSS color */}
-            <h2 
-              className="text-4xl md:text-6xl font-black tracking-tight text-center px-8"
-              style={{ color: colors.foregroundColor }}
-            >
-              {currentText}
-            </h2>
-
-            {/* Clean Flat Overlays for Feedback */}
-            <AnimatePresence>
-              {feedback !== 'idle' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 z-10 flex items-center justify-center"
-                >
-                  {/* Subtle flat dimming background */}
-                  <div className="absolute inset-0 bg-background/90" />
-                  
-                  <motion.div
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ type: "spring", bounce: 0.3 }}
-                    className="relative z-20 flex flex-col items-center justify-center p-6 bg-surface border border-border shadow-lg rounded-xl min-w-[280px]"
-                  >
-                    <div className={`flex items-center justify-center w-12 h-12 rounded-full mb-4 ${feedback === 'correct' ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
-                      {feedback === 'correct' ? (
-                        <CheckCircle className="w-6 h-6 text-emerald-500" strokeWidth={2.5} />
-                      ) : (
-                        <XCircle className="w-6 h-6 text-rose-500" strokeWidth={2.5} />
-                      )}
-                    </div>
-                    
-                    <div className="text-sm text-text-secondary uppercase tracking-wider font-semibold mb-1">
-                      Contrast Ratio
-                    </div>
-                    <div className="text-4xl font-mono font-bold text-text-primary tracking-tight mb-4">
-                      {colors.ratio.toFixed(2)}:1
-                    </div>
-                    
-                    <div className={`px-4 py-1.5 text-sm font-bold uppercase tracking-widest rounded-md ${colors.passesNormal ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`} aria-live="assertive">
-                      {wasTimeout ? 'TIME OUT' : colors.passesNormal ? 'Pass' : 'Fail'}
-                    </div>
-
-                    {feedback === 'wrong' && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute -bottom-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-black shadow-lg"
-                      >
-                        -5 PTS
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Clean Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 md:gap-6 mt-2">
-            <button 
-              className="flex flex-col items-center justify-center gap-1.5 p-5 md:p-6 rounded-xl border border-border bg-surface hover:bg-surface-hover hover:border-text-secondary/30 transition-all active:scale-[0.98] outline-none disabled:opacity-50 disabled:pointer-events-none group"
-              onClick={() => handleGuess(true)}
-              disabled={feedback !== 'idle'}
-            >
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-text-primary group-hover:text-emerald-500 transition-colors" strokeWidth={2.5} />
-                <span className="text-xl font-bold tracking-tight text-text-primary">PASS</span>
-              </div>
-              <span className="text-[11px] font-medium text-text-secondary uppercase tracking-widest bg-background px-2 py-0.5 rounded border border-border group-hover:border-border-hover transition-colors">Key: P or ←</span>
-            </button>
             
-            <button 
-              className="flex flex-col items-center justify-center gap-1.5 p-5 md:p-6 rounded-xl border border-border bg-surface hover:bg-surface-hover hover:border-text-secondary/30 transition-all active:scale-[0.98] outline-none disabled:opacity-50 disabled:pointer-events-none group"
-              onClick={() => handleGuess(false)}
-              disabled={feedback !== 'idle'}
-            >
-              <div className="flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-text-primary group-hover:text-rose-500 transition-colors" strokeWidth={2.5} />
-                <span className="text-xl font-bold tracking-tight text-text-primary">FAIL</span>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <span className="font-semibold text-text-primary">{streak}</span>
+                <span>streak</span>
+                <span className="mx-2">•</span>
+                <span className="font-semibold text-text-primary">{score}</span>
+                <span>pts</span>
               </div>
-              <span className="text-[11px] font-medium text-text-secondary uppercase tracking-widest bg-background px-2 py-0.5 rounded border border-border group-hover:border-border-hover transition-colors">Key: F or →</span>
-            </button>
+              
+              <div className="flex items-center gap-2 text-sm font-bold text-text-secondary">
+                <Timer size={16} />
+                <span>Timed</span>
+              </div>
+            </div>
           </div>
+
+          <ContrastBoard 
+            colors={colors}
+            currentText={currentText}
+            feedback={feedback}
+            isShaking={isShaking}
+            wasTimeout={wasTimeout}
+            onGuess={handleGuess}
+          />
+        </div>
+      )}
           
         </div>
       )}
