@@ -1,0 +1,27 @@
+/* Design Sight — arcade design tokens (Epic 01, US1.2).
+   Single source of truth for the palette; Tailwind maps these in
+   tailwind.config.ts. Dark stage + saturated accents, chunky borders,
+   hard offset shadows. */
+:root {
+  --ds-bg: #0e0b16;
+  --ds-surface: #1a1626;
+  --ds-raised: #241e35;
+  --ds-border: #372e52;
+  --ds-shadow: #060409;
+  --ds-text: #f4f1ff;
+  --ds-muted: #9a8fc0;
+
+  --ds-primary: #8b5cf6;
+  --ds-primary-hot: #a78bfa;
+  --ds-accent: #ff5d73;
+  --ds-lime: #b8f818;
+  --ds-amber: #ffb520;
+
+  /* Score tiers (used by Epic 02 tier stamps) */
+  --ds-tier-perfect: #ffd700;
+  --ds-tier-great: #b8f818;
+  --ds-tier-good: #38bdf8;
+  --ds-tier-rough: #ff5d73;
+
+  --ds-focus-ring: #b8f818;
+}

@@ -1,0 +1,23 @@
+@import './tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background-color: var(--ds-bg);
+    color: var(--ds-text);
+    font-family: Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100dvh;
+  }
+  /* Visible focus everywhere — keyboard playability is a launch requirement
+     (PRD 10). Never outline: none without replacement. */
+  :focus-visible {
+    outline: 3px solid var(--ds-focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
