@@ -2,6 +2,7 @@ import { handleOptions, json } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/context.ts';
 import { verifyTicket } from '../_shared/ticket.ts';
 import { exponentialFalloff, tierForScore } from '../_shared/scoring.ts';
+import { scoreKernDuel, type KernDuelAnswer, type KernDuelTruth } from '../_shared/kernScoring.ts';
 
 /**
  * submit-answer (Epic 02, decision 3): the referee. Verifies the signed
@@ -21,6 +22,14 @@ const SCORERS: Record<string, Scorer> = {
     if (typeof t?.width !== 'number') return 0;
     if (typeof a?.width !== 'number' || !Number.isFinite(a.width)) return 0;
     return exponentialFalloff(Math.abs(a.width - t.width), 2, 40);
+  },
+  'kern-duel': (truth, answer) => {
+    const t = truth as Partial<KernDuelTruth>;
+    if (!Array.isArray(t.offsets) || !Array.isArray(t.lockedIndices)) return 0;
+    const a = answer as Partial<KernDuelAnswer> | null;
+    const safeAnswer: KernDuelAnswer | null =
+      a && Array.isArray(a.offsets) ? { offsets: a.offsets } : null;
+    return scoreKernDuel(t as KernDuelTruth, safeAnswer).score;
   },
 };
 

@@ -4,7 +4,9 @@ dist/
 .env.local
 .env.*.local
 .supabase/
+supabase/.temp/
 *.log
+*.stackdump
 .DS_Store
 coverage/
 .vercel/

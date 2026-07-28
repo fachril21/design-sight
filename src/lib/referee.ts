@@ -7,7 +7,7 @@ import type {
   StartRunResponse,
   SubmitAnswerResponse,
 } from '@/lib/refereeTypes';
-import { peekGuestId } from '@/lib/guestStorage';
+import { getOrCreateGuestId } from '@/lib/guestStorage';
 
 /**
  * Referee factory (Epic 02, decision 3). With Supabase configured, all
@@ -34,8 +34,11 @@ function edgeReferee(): Referee {
   const supabase = getSupabase();
   if (!supabase) throw new Error('edgeReferee requires a configured client');
   const guestHeaders = (): Record<string, string> => {
-    const id = peekGuestId();
-    return id ? { 'x-guest-id': id } : {};
+    // Lazily create the guest identity here, not just in the auth modal's
+    // "Play as guest" button — a player who clicks "Play 5 rounds" straight
+    // from Home never opens that modal, and start-run correctly 401s an
+    // unauthenticated request with neither a user JWT nor a guest id.
+    return { 'x-guest-id': getOrCreateGuestId() };
   };
 
   const invoke = async <T>(name: string, body: unknown): Promise<T> => {

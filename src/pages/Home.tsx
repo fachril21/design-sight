@@ -11,7 +11,7 @@ import { pageVariants, pageVariantsReduced } from '@/lib/motion';
 
 const GAMES = [
   { slug: 'dummy', name: 'Pixel Guess', tagline: 'Engine test game — eyeball the width', ready: true },
-  { slug: 'kern-duel', name: 'Kern Duel', tagline: 'Space the letters like a typographer', ready: false },
+  { slug: 'kern-duel', name: 'Kern Duel', tagline: 'Space the letters like a typographer', ready: true },
   { slug: 'contrast-call', name: 'Contrast Call', tagline: 'Guess the WCAG ratio on sight', ready: false },
   { slug: 'color-match', name: 'Color Match', tagline: 'Rebuild a color from memory', ready: false },
   { slug: 'type-snob', name: 'Type Snob', tagline: 'Name that typeface', ready: false },

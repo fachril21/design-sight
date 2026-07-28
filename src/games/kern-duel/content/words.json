@@ -1,0 +1,18 @@
+[
+  { "word": "Fly", "fontKey": "poppins", "difficulty": 1 },
+  { "word": "Wavy", "fontKey": "poppins", "difficulty": 1 },
+  { "word": "Tower", "fontKey": "poppins", "difficulty": 2 },
+  { "word": "Avatar", "fontKey": "poppins", "difficulty": 2 },
+  { "word": "Toy", "fontKey": "playfair-display", "difficulty": 1 },
+  { "word": "Type", "fontKey": "playfair-display", "difficulty": 1 },
+  { "word": "Watch", "fontKey": "playfair-display", "difficulty": 2 },
+  { "word": "Waterfall", "fontKey": "playfair-display", "difficulty": 3 },
+  { "word": "Away", "fontKey": "inter", "difficulty": 1 },
+  { "word": "Float", "fontKey": "inter", "difficulty": 2 },
+  { "word": "Toast", "fontKey": "inter", "difficulty": 2 },
+  { "word": "Typewriter", "fontKey": "inter", "difficulty": 3 },
+  { "word": "Yacht", "fontKey": "merriweather", "difficulty": 2 },
+  { "word": "Tally", "fontKey": "merriweather", "difficulty": 2 },
+  { "word": "Wafer", "fontKey": "merriweather", "difficulty": 2 },
+  { "word": "Toffee", "fontKey": "merriweather", "difficulty": 2 }
+]

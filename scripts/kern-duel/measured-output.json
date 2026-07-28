@@ -1,0 +1,130 @@
+[
+  {
+    "word": "Fly",
+    "fontKey": "poppins",
+    "difficulty": 1,
+    "letters": ["F", "l", "y"],
+    "naturalPositions": [0, 35.59375, 53.375],
+    "kernedPositions": [0, 35.59375, 53.375]
+  },
+  {
+    "word": "Wavy",
+    "fontKey": "poppins",
+    "difficulty": 1,
+    "letters": ["W", "a", "v", "y"],
+    "naturalPositions": [0, 60.40625, 88.8125, 120.8125],
+    "kernedPositions": [0, 55.28125, 83.6875, 115.6875]
+  },
+  {
+    "word": "Tower",
+    "fontKey": "poppins",
+    "difficulty": 2,
+    "letters": ["T", "o", "w", "e", "r"],
+    "naturalPositions": [0, 39.09375, 71.09375, 117.3125, 145.71875],
+    "kernedPositions": [0, 34.625, 66.625, 112.84375, 141.25]
+  },
+  {
+    "word": "Avatar",
+    "fontKey": "poppins",
+    "difficulty": 2,
+    "letters": ["A", "v", "a", "t", "a", "r"],
+    "naturalPositions": [0, 46.21875, 78.21875, 106.625, 124.40625, 152.8125],
+    "kernedPositions": [0, 41.46875, 73.46875, 101.875, 119.65625, 148.0625]
+  },
+  {
+    "word": "Toy",
+    "fontKey": "playfair-display",
+    "difficulty": 1,
+    "letters": ["T", "o", "y"],
+    "naturalPositions": [0, 39.09375, 71.09375],
+    "kernedPositions": [0, 34.625, 66.625]
+  },
+  {
+    "word": "Type",
+    "fontKey": "playfair-display",
+    "difficulty": 1,
+    "letters": ["T", "y", "p", "e"],
+    "naturalPositions": [0, 39.09375, 71.09375, 103.09375],
+    "kernedPositions": [0, 34.625, 66.625, 98.625]
+  },
+  {
+    "word": "Watch",
+    "fontKey": "playfair-display",
+    "difficulty": 2,
+    "letters": ["W", "a", "t", "c", "h"],
+    "naturalPositions": [0, 60.40625, 88.8125, 106.59375, 135],
+    "kernedPositions": [0, 55.28125, 83.6875, 101.46875, 129.875]
+  },
+  {
+    "word": "Waterfall",
+    "fontKey": "playfair-display",
+    "difficulty": 3,
+    "letters": ["W", "a", "t", "e", "r", "f", "a", "l", "l"],
+    "naturalPositions": [0, 60.40625, 88.8125, 106.59375, 135, 156.3125, 177.625, 206.03125, 223.8125],
+    "kernedPositions": [0, 55.28125, 83.6875, 101.46875, 129.875, 151.1875, 172.5, 200.90625, 218.6875]
+  },
+  {
+    "word": "Away",
+    "fontKey": "inter",
+    "difficulty": 1,
+    "letters": ["A", "w", "a", "y"],
+    "naturalPositions": [0, 44.15625, 90.375, 118.78125],
+    "kernedPositions": [0, 44.15625, 90.375, 118.78125]
+  },
+  {
+    "word": "Float",
+    "fontKey": "inter",
+    "difficulty": 2,
+    "letters": ["F", "l", "o", "a", "t"],
+    "naturalPositions": [0, 35.59375, 53.375, 85.375, 113.78125],
+    "kernedPositions": [0, 35.59375, 53.375, 85.375, 113.78125]
+  },
+  {
+    "word": "Toast",
+    "fontKey": "inter",
+    "difficulty": 2,
+    "letters": ["T", "o", "a", "s", "t"],
+    "naturalPositions": [0, 39.09375, 71.09375, 99.5, 124.40625],
+    "kernedPositions": [0, 34.625, 66.625, 95.03125, 119.9375]
+  },
+  {
+    "word": "Typewriter",
+    "fontKey": "inter",
+    "difficulty": 3,
+    "letters": ["T", "y", "p", "e", "w", "r", "i", "t", "e", "r"],
+    "naturalPositions": [0, 39.09375, 71.09375, 103.09375, 131.5, 177.71875, 199.03125, 216.8125, 234.59375, 263],
+    "kernedPositions": [0, 34.625, 66.625, 98.625, 127.03125, 173.25, 194.5625, 212.34375, 230.125, 258.53125]
+  },
+  {
+    "word": "Yacht",
+    "fontKey": "merriweather",
+    "difficulty": 2,
+    "letters": ["Y", "a", "c", "h", "t"],
+    "naturalPositions": [0, 46.21875, 74.625, 103.03125, 135.03125],
+    "kernedPositions": [0, 39.8125, 68.21875, 96.625, 128.625]
+  },
+  {
+    "word": "Tally",
+    "fontKey": "merriweather",
+    "difficulty": 2,
+    "letters": ["T", "a", "l", "l", "y"],
+    "naturalPositions": [0, 39.09375, 67.5, 85.28125, 103.0625],
+    "kernedPositions": [0, 34.625, 63.03125, 80.8125, 98.59375]
+  },
+  {
+    "word": "Wafer",
+    "fontKey": "merriweather",
+    "difficulty": 2,
+    "letters": ["W", "a", "f", "e", "r"],
+    "naturalPositions": [0, 60.40625, 88.8125, 110.125, 138.53125],
+    "kernedPositions": [0, 55.28125, 83.6875, 105, 133.40625]
+  },
+  {
+    "word": "Toffee",
+    "fontKey": "merriweather",
+    "difficulty": 2,
+    "letters": ["T", "o", "f", "f", "e", "e"],
+    "naturalPositions": [0, 39.09375, 71.09375, 92.40625, 113.71875, 142.125],
+    "kernedPositions": [0, 34.625, 66.625, 86.78125, 108.09375, 136.5]
+  }
+]

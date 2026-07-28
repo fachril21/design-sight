@@ -1,6 +1,9 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createReferee } from './referee';
 import type { ClientRound, StartRunResponse } from './refereeTypes';
+import type { KernDuelPayload } from '@/games/kern-duel/types';
 
 /**
  * Payload-purity guard (Epic 02 AC 2): truth data must be verifiably
@@ -73,5 +76,49 @@ describe('payload purity (PRD 8.4)', () => {
       clientTimeMs: 0,
     });
     expect(result.score).toBe(0);
+  });
+});
+
+/**
+ * Kern Duel extension (Epic 03, plan K15). The offline referee only
+ * supports the dummy game, so this checks the REAL generated content
+ * (the migration SQL that will actually ship) rather than a hypothetical
+ * shape — stronger protection against someone accidentally adding a
+ * truth-bearing field to generate-seed.mjs's payload builder.
+ */
+type HasKey<T, K extends string> = K extends keyof T ? true : false;
+const kernDuelPayloadHasNoOffsets: HasKey<KernDuelPayload, 'offsets'> extends false
+  ? true
+  : never = true;
+const kernDuelPayloadHasNoKernedPositions: HasKey<
+  KernDuelPayload,
+  'kernedPositions'
+> extends false
+  ? true
+  : never = true;
+
+describe('kern-duel payload purity (plan K15)', () => {
+  it('type-level guard holds: KernDuelPayload cannot represent truth offsets', () => {
+    expect(kernDuelPayloadHasNoOffsets).toBe(true);
+    expect(kernDuelPayloadHasNoKernedPositions).toBe(true);
+  });
+
+  it('the actual generated seed SQL never embeds truth offsets in a payload literal', () => {
+    const sqlPath = join(
+      process.cwd(),
+      'supabase/migrations/00000000000002_kern_duel_seed.sql',
+    );
+    const sql = readFileSync(sqlPath, 'utf8');
+    const payloadLiterals = [...sql.matchAll(/(\{"word":.*?\})'::jsonb/g)]
+      .map((m) => m[1])
+      .filter((literal): literal is string => literal !== undefined);
+    expect(payloadLiterals.length).toBeGreaterThan(0);
+    for (const literal of payloadLiterals) {
+      const payload = JSON.parse(literal) as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('offsets');
+      expect(payload).not.toHaveProperty('kernedPositions');
+      // the puzzle's neutral starting layout IS expected to be present:
+      expect(payload).toHaveProperty('naturalPositions');
+    }
   });
 });
