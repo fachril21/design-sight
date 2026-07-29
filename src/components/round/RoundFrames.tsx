@@ -66,11 +66,11 @@ export function Countdown({ onDone }: { onDone: () => void }) {
   );
 }
 
-export function SuspenseBeat() {
+export function SuspenseBeat({ label = 'Scoring…' }: { label?: string }) {
   return (
     <div className="flex items-center justify-center min-h-[200px]">
       <p className="font-display text-2xl text-arcade-muted animate-pulse" role="status">
-        Scoring…
+        {label}
       </p>
     </div>
   );

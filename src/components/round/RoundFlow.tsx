@@ -147,6 +147,16 @@ export function RoundFlow({
     }
   }, [store.state, module.slug, referee, status, user, refreshProfile]);
 
+  // 'idle' means the async startRun() call is still in flight (Play.tsx
+  // hasn't seeded the store yet) — this is normal loading, not a failure.
+  // Without this check, the very first render (before that promise
+  // resolves) fell through to the "no rounds" error below and flashed
+  // "Something broke" on every fresh run, even though it was about to
+  // load fine a moment later.
+  if (store.state === 'idle') {
+    return <SuspenseBeat label="Loading…" />;
+  }
+
   if (!round && store.state !== 'complete' && store.state !== 'error') {
     return <ErrorFrame message="No rounds available." onRetry={onExit} onQuit={onExit} />;
   }
