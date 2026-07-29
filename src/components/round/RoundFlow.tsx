@@ -60,13 +60,16 @@ export function RoundFlow({
             clientTimeMs: 0,
           });
           setCountUpDone(false);
-          useRoundStore.getState().scored({
-            roundNo: current.roundNo,
-            answer,
-            score: result.score,
-            tier: result.tier,
-            truth: result.truth,
-          });
+          useRoundStore.getState().scored(
+            {
+              roundNo: current.roundNo,
+              answer,
+              score: result.score,
+              tier: result.tier,
+              truth: result.truth,
+            },
+            result.ticket,
+          );
           if (result.tier === 'PERFECT') setShakeCount((c) => c + 1);
           inFlight.current = false;
           return;

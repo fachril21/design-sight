@@ -1,28 +1,18 @@
 import { handleOptions, json } from '../_shared/cors.ts';
 import { adminClient, resolveGuestId, resolveUserId } from '../_shared/context.ts';
 import { signTicket, type RunTicket } from '../_shared/ticket.ts';
+import { GAME_SPECS, perRoundBudgetMs } from '../_shared/gameSpecs.ts';
 
 /**
  * start-run (Epic 02, decision 3): picks/generates rounds, creates the runs
  * row for authed users, and returns ONLY client-safe payloads plus a signed
  * ticket with server-computed deadlines. Truth stays in the rounds table.
+ * Deadlines here are just the OPENING budget — submit-answer refreshes the
+ * next round's deadline from the actual submission time, so normal dwell
+ * time on the untimed intro/reveal screens can never cascade into false
+ * lateness later in the run (see submit-answer for the refresh logic).
  */
 const ROUNDS_PER_RUN = 5;
-/** Per-round wall-clock allowance: play timer + reveal/interstitial buffer. */
-const INTERSTITIAL_BUFFER_S = 45;
-
-interface GameSpec {
-  timerSeconds: number;
-  procedural: boolean;
-}
-
-const GAME_SPECS: Record<string, GameSpec> = {
-  dummy: { timerSeconds: 15, procedural: true },
-  'kern-duel': { timerSeconds: 30, procedural: false },
-  'contrast-call': { timerSeconds: 15, procedural: false },
-  'color-match': { timerSeconds: 20, procedural: true },
-  'type-snob': { timerSeconds: 15, procedural: false },
-};
 
 Deno.serve(async (req) => {
   const preflight = handleOptions(req);
@@ -98,10 +88,12 @@ Deno.serve(async (req) => {
       runId = run.id;
     }
 
-    // Server-clock deadlines: cumulative schedule bounds the whole run
-    // (submissions past a deadline score 0 — PRD 8.4).
+    // Server-clock deadlines: only round 1's deadline is actually load-bearing
+    // here — submit-answer refreshes round i+1's deadline from its own
+    // submission time once round i is scored, so later rounds' opening
+    // values below are just placeholders (PRD 8.4).
     const iat = Date.now();
-    const perRoundMs = (spec.timerSeconds + INTERSTITIAL_BUFFER_S) * 1000;
+    const perRoundMs = perRoundBudgetMs(gameSlug);
     const deadlines = roundIds.map((_, i) => iat + (i + 1) * perRoundMs);
 
     const ticket: RunTicket = {

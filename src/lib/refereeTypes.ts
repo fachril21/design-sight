@@ -36,6 +36,13 @@ export interface SubmitAnswerResponse {
   truth: unknown;
   /** True when the submission arrived outside the allowed window. */
   late?: boolean;
+  /**
+   * Refreshed ticket carrying a fresh deadline for the NEXT round, computed
+   * from this submission's server time rather than the run's fixed opening
+   * schedule — replaces the stored ticket so untimed dwell time on
+   * intro/reveal screens can't cascade into false lateness later in the run.
+   */
+  ticket?: string;
 }
 
 export interface CompleteRunResponse {

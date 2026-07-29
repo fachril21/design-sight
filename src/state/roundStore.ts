@@ -85,7 +85,8 @@ interface RoundStoreState {
   tick: (now: number) => void;
   submit: () => boolean;
   timerExpired: () => boolean;
-  scored: (result: RoundResultEntry) => void;
+  /** `nextTicket`, when present, replaces the stored ticket (fresh next-round deadline). */
+  scored: (result: RoundResultEntry, nextTicket?: string) => void;
   advance: () => void;
   fail: (message: string) => void;
   reset: () => void;
@@ -200,10 +201,11 @@ export const useRoundStore = create<RoundStoreState>((set, get) => ({
   submit: () => get().dispatch('SUBMIT'),
   timerExpired: () => get().dispatch('TIMER_EXPIRED'),
 
-  scored: (result) => {
+  scored: (result, nextTicket) => {
     get().dispatch('SCORED', (s) => ({
       results: [...s.results, result],
       deadline: null,
+      ...(nextTicket ? { ticket: nextTicket } : {}),
     }));
   },
 

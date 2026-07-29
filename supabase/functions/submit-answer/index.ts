@@ -1,6 +1,7 @@
 import { handleOptions, json } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/context.ts';
-import { verifyTicket } from '../_shared/ticket.ts';
+import { signTicket, verifyTicket, type RunTicket } from '../_shared/ticket.ts';
+import { perRoundBudgetMs } from '../_shared/gameSpecs.ts';
 import { exponentialFalloff, tierForScore } from '../_shared/scoring.ts';
 import { scoreKernDuel, type KernDuelAnswer, type KernDuelTruth } from '../_shared/kernScoring.ts';
 
@@ -10,6 +11,13 @@ import { scoreKernDuel, type KernDuelAnswer, type KernDuelTruth } from '../_shar
  * timing is display-only, plan E8), re-validates the answer shape (E7),
  * scores against truth, persists idempotently (E6), and only then
  * reveals truth to the client.
+ *
+ * Also refreshes the NEXT round's deadline from "now" (see `nextTicket`
+ * below). start-run's deadlines form a fixed cumulative schedule from run
+ * start; without a refresh, ordinary untimed time spent on the intro/reveal
+ * screens drifts that schedule into the past, and every following round in
+ * the run gets silently forced to a score of 0 by the lateness check below —
+ * regardless of how correct the answer was.
  */
 const GRACE_MS = 2000;
 
@@ -75,6 +83,22 @@ Deno.serve(async (req) => {
     const score = late ? 0 : scorer(round.truth, body.answer ?? null);
     const tier = tierForScore(score);
 
+    // Refresh the NEXT round's deadline from now — regardless of whether
+    // THIS round was late — so a slow round can't cascade into every round
+    // after it also scoring 0. Earlier entries are already scored/irrelevant,
+    // so only idx+1 needs a fresh value; it gets refreshed again in turn.
+    let nextTicketStr: string | undefined;
+    const nextIdx = idx + 1;
+    if (nextIdx < ticket.roundIds.length) {
+      const refreshed: RunTicket = {
+        ...ticket,
+        deadlines: ticket.deadlines.map((d, i) =>
+          i === nextIdx ? Date.now() + perRoundBudgetMs(ticket.gameSlug) : d,
+        ),
+      };
+      nextTicketStr = await signTicket(refreshed);
+    }
+
     // Persist for authed runs; PK (run_id, round_no) makes retries
     // idempotent — a duplicate submit returns the ORIGINAL score.
     if (ticket.runId && ticket.userId) {
@@ -101,13 +125,20 @@ Deno.serve(async (req) => {
             tier: tierForScore(original),
             truth: round.truth,
             duplicate: true,
+            ...(nextTicketStr ? { ticket: nextTicketStr } : {}),
           });
         }
         throw insertErr;
       }
     }
 
-    return json({ score, tier, truth: round.truth, ...(late ? { late: true } : {}) });
+    return json({
+      score,
+      tier,
+      truth: round.truth,
+      ...(late ? { late: true } : {}),
+      ...(nextTicketStr ? { ticket: nextTicketStr } : {}),
+    });
   } catch (err) {
     console.error('[submit-answer]', err);
     return json({ error: 'Internal error' }, 500);
